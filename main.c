@@ -9,13 +9,24 @@ void framebuffer_size_callback (GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
+void error_callback(int error, const char* description)
+{
+    printf("%s\n", description);
+}
+
 int main (int argc, char *argv[])
 {
-    glfwInit();
+    glfwSetErrorCallback(error_callback);
+
+    if (glfwInit() == GLFW_FALSE) {
+        printf("Failed to initialize GLFW\n");
+        return EXIT_FAILURE;
+    }
+
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    
+
     GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
     if (window == NULL) {
         printf("Failed to create GLFW window\n");
@@ -25,7 +36,7 @@ int main (int argc, char *argv[])
     glfwMakeContextCurrent(window);
 
     if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
-        printf("Failed to initialize GLAD");
+        printf("Failed to initialize GLAD\n");
         return EXIT_FAILURE;
     }
 
