@@ -4,14 +4,21 @@
 #include <glad/glad.h> 
 #include <GLFW/glfw3.h>
 
+void error_callback (int error, const char* description)
+{
+    printf("%s\n", description);
+}
+
 void framebuffer_size_callback (GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
 }
 
-void error_callback(int error, const char* description)
+void processInput (GLFWwindow *window)
 {
-    printf("%s\n", description);
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
+    }
 }
 
 int main (int argc, char *argv[])
@@ -45,8 +52,13 @@ int main (int argc, char *argv[])
 
     while(!glfwWindowShouldClose(window))
     {
-        glfwSwapBuffers(window);
+        processInput(window);
+
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
         glfwPollEvents();
+        glfwSwapBuffers(window);
     }
 
     glfwTerminate();
