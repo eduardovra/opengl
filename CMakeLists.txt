@@ -6,5 +6,11 @@ target_include_directories(glad PRIVATE glad/include)
 
 add_executable(opengl main.c)
 target_include_directories(opengl PRIVATE glad/include)
+
 find_package(glfw3)
+
 target_link_libraries(opengl glfw GL X11 pthread Xrandr Xi dl m glad ${CMAKE_DL_LIBS})
+
+target_link_libraries(opengl PRIVATE cglm)
+
+add_subdirectory(cglm)
