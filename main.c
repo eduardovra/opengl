@@ -17,6 +17,9 @@ vec3 cameraPos = {0.0f, 0.0f, 3.0f};
 vec3 cameraFront = {0.0f, 0.0f, -1.0f};
 vec3 cameraUp = {0.0f, 1.0f, 0.0f};
 
+float deltaTime = 0.0f;	// Time between current frame and last frame
+float lastFrame = 0.0f; // Time of last frame
+
 void error_callback (int error, const char* description)
 {
     printf("%s\n", description);
@@ -29,7 +32,7 @@ void framebuffer_size_callback (GLFWwindow* window, int width, int height)
 
 void processInput (GLFWwindow *window)
 {
-    const float cameraSpeed = 0.1f;
+    float cameraSpeed = 2.5f * deltaTime;
     vec3 tmp, tmp2;
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
@@ -312,6 +315,10 @@ int main (int argc, char *argv[])
 
     while (!glfwWindowShouldClose(window))
     {
+        float currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
         processInput(window);
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
