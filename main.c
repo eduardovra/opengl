@@ -300,10 +300,14 @@ int main (int argc, char *argv[])
 
         // transformations
         mat4 view, projection;
-        glm_mat4_identity(view);
+        const float radius = 10.0f;
+        float camX = sin(glfwGetTime()) * radius;
+        float camZ = cos(glfwGetTime()) * radius;
+        vec3 eye = {camX, 0.0f, camZ};
+        vec3 center = {0.0f, 0.0f, 0.0f};
+        vec3 up = {0.0f, 1.0f, 0.0f};
 
-        vec3 position = {0.0f, 0.0f, -3.0f};
-        glm_translate(view, position);
+        glm_lookat(eye, center, up, view);
         glm_perspective(glm_rad(45.0f), 800.0f / 600.0f, 0.1f, 100.0f, projection);
 
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, (float *) view);
