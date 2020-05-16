@@ -235,17 +235,6 @@ int main (int argc, char *argv[])
     glUniform1i(glGetUniformLocation(shaderProgram, "texture1"), 0);
     glUniform1i(glGetUniformLocation(shaderProgram, "texture2"), 1);
 
-    // transformations
-    mat4 trans;
-    glm_mat4_identity(trans);
-    vec3 axis = {0.0f, 0.0f, 1.0f};
-    glm_rotate(trans, glm_rad(90.0f), axis);
-    vec3 scale = {0.5f, 0.5f, 0.5f};
-    glm_scale(trans, scale);
-
-    unsigned int transformLoc = glGetUniformLocation(shaderProgram, "transform");
-    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, (float *) trans);
-
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
@@ -258,6 +247,17 @@ int main (int argc, char *argv[])
         glBindTexture(GL_TEXTURE_2D, texture1);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, texture2);
+
+        // transformations
+        mat4 trans;
+        glm_mat4_identity(trans);
+        vec3 coord = {0.5f, -0.5f, 0.0f};
+        glm_translate(trans, coord);
+        vec3 axis = {0.0f, 0.0f, 1.0f};
+        glm_rotate(trans, (float) glfwGetTime(), axis);
+
+        unsigned int transformLoc = glGetUniformLocation(shaderProgram, "transform");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, (float *) trans);
 
         glUseProgram(shaderProgram);
 
