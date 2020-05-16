@@ -249,15 +249,19 @@ int main (int argc, char *argv[])
         glBindTexture(GL_TEXTURE_2D, texture2);
 
         // transformations
-        mat4 trans;
-        glm_mat4_identity(trans);
-        vec3 coord = {0.5f, -0.5f, 0.0f};
-        glm_translate(trans, coord);
-        vec3 axis = {0.0f, 0.0f, 1.0f};
-        glm_rotate(trans, (float) glfwGetTime(), axis);
+        mat4 model, view, projection;
+        glm_mat4_identity(model);
+        glm_mat4_identity(view);
 
-        unsigned int transformLoc = glGetUniformLocation(shaderProgram, "transform");
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, (float *) trans);
+        vec3 axis = {1.0f, 0.0f, 0.0f};
+        glm_rotate(model, glm_rad(-55.0f), axis);
+        vec3 position = {0.0f, 0.0f, -3.0f};
+        glm_translate(view, position);
+        glm_perspective(glm_rad(45.0f), 800.0f / 600.0f, 0.1f, 100.0f, projection);
+
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, (float *) model);
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, (float *) view);
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, (float *) projection);
 
         glUseProgram(shaderProgram);
 
