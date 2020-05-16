@@ -13,6 +13,10 @@
 #define SCR_WIDTH 800
 #define SCR_HEIGHT 600
 
+vec3 cameraPos = {0.0f, 0.0f, 3.0f};
+vec3 cameraFront = {0.0f, 0.0f, -1.0f};
+vec3 cameraUp = {0.0f, 1.0f, 0.0f};
+
 void error_callback (int error, const char* description)
 {
     printf("%s\n", description);
@@ -25,6 +29,29 @@ void framebuffer_size_callback (GLFWwindow* window, int width, int height)
 
 void processInput (GLFWwindow *window)
 {
+    const float cameraSpeed = 0.1f;
+    vec3 tmp, tmp2;
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+        glm_vec3_scale(cameraFront, cameraSpeed, tmp);
+        glm_vec3_add(cameraPos, tmp, cameraPos);
+    }
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+        glm_vec3_scale(cameraFront, cameraSpeed, tmp);
+        glm_vec3_sub(cameraPos, tmp, cameraPos);
+    }
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+        glm_vec3_cross(cameraFront, cameraUp, tmp);
+        glm_vec3_normalize(tmp);
+        glm_vec3_scale(tmp, cameraSpeed, tmp2);
+        glm_vec3_sub(cameraPos, tmp2, cameraPos);
+    }
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+        glm_vec3_cross(cameraFront, cameraUp, tmp);
+        glm_vec3_normalize(tmp);
+        glm_vec3_scale(tmp, cameraSpeed, tmp2);
+        glm_vec3_add(cameraPos, tmp2, cameraPos);
+    }
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
@@ -300,14 +327,9 @@ int main (int argc, char *argv[])
 
         // transformations
         mat4 view, projection;
-        const float radius = 10.0f;
-        float camX = sin(glfwGetTime()) * radius;
-        float camZ = cos(glfwGetTime()) * radius;
-        vec3 eye = {camX, 0.0f, camZ};
-        vec3 center = {0.0f, 0.0f, 0.0f};
-        vec3 up = {0.0f, 1.0f, 0.0f};
-
-        glm_lookat(eye, center, up, view);
+        vec3 center;
+        glm_vec3_add(cameraPos, cameraFront, center);
+        glm_lookat(cameraPos, center, cameraUp, view);
         glm_perspective(glm_rad(45.0f), 800.0f / 600.0f, 0.1f, 100.0f, projection);
 
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, (float *) view);
