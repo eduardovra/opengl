@@ -94,6 +94,19 @@ void mouse_callback (GLFWwindow* window, double xpos, double ypos)
     glm_vec3_normalize_to(direction, cameraFront);
 }
 
+void scroll_callback (GLFWwindow* window, double xoffset, double yoffset)
+{
+    if (fov >= 1.0f && fov <= 45.0f) {
+        fov -= yoffset;
+    }
+    if (fov < 1.0f) {
+        fov = 1.0f;
+    }
+    if (fov > 45.0f) {
+        fov = 45.0f;
+    }
+}
+
 GLFWwindow* createWindow ()
 {
     glfwSetErrorCallback(error_callback);
@@ -125,6 +138,7 @@ GLFWwindow* createWindow ()
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetScrollCallback(window, scroll_callback);
 
     return window;
 }
@@ -374,7 +388,7 @@ int main (int argc, char *argv[])
         vec3 center;
         glm_vec3_add(cameraPos, cameraFront, center);
         glm_lookat(cameraPos, center, cameraUp, view);
-        glm_perspective(glm_rad(45.0f), 800.0f / 600.0f, 0.1f, 100.0f, projection);
+        glm_perspective(glm_rad(fov), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f, projection);
 
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, (float *) view);
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, (float *) projection);
