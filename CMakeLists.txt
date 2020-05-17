@@ -11,4 +11,8 @@ add_subdirectory(external/cglm)
 
 add_executable(getting_started getting_started/main.c)
 target_include_directories(getting_started PRIVATE external/glad/include external/stb)
-target_link_libraries(getting_started PRIVATE glfw GL X11 pthread Xrandr Xi m glad cglm ${CMAKE_DL_LIBS})
+target_link_libraries(getting_started glfw GL X11 pthread Xrandr Xi m glad ${CMAKE_DL_LIBS})
+
+add_executable(lighting lighting/main.c)
+target_include_directories(lighting PRIVATE external/glad/include external/stb)
+target_link_libraries(lighting glfw GL X11 pthread Xrandr Xi m glad ${CMAKE_DL_LIBS})
