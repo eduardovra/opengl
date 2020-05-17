@@ -227,7 +227,7 @@ unsigned int createTexture (const char *imagePath)
     // load and generate the texture
     stbi_set_flip_vertically_on_load(true);
     int width, height, nrChannels;
-    unsigned char *data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
+    unsigned char *data = stbi_load("resources/container.jpg", &width, &height, &nrChannels, 0);
     if (!data)
     {
         printf("Failed to load texture %s\n", imagePath);
@@ -245,7 +245,7 @@ int main (int argc, char *argv[])
 {
     GLFWwindow *window = createWindow();
 
-    unsigned int shaderProgram = createProgram("shader.vert", "shader.frag");
+    unsigned int shaderProgram = createProgram("getting_started/shader.vert", "getting_started/shader.frag");
 
     float vertices[] = {
         -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
@@ -348,7 +348,7 @@ int main (int argc, char *argv[])
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     int width, height, nrChannels;
-    unsigned char *data = stbi_load("awesomeface.png", &width, &height, &nrChannels, 0);
+    unsigned char *data = stbi_load("resources/awesomeface.png", &width, &height, &nrChannels, 0);
     if (!data) {
         printf("Failed to load texture %s\n", "awesomeface.png");
         exit(EXIT_FAILURE);
