@@ -342,6 +342,7 @@ int main (int argc, char *argv[])
         vec3 lightColor = {1.0f, 1.0f, 1.0f};
         glUniform3fv(glGetUniformLocation(lightingShader, "lightColor"), 1, lightColor);
         glUniform3fv(glGetUniformLocation(lightingShader, "lightPos"), 1, lightPos);
+        glUniform3fv(glGetUniformLocation(lightingShader, "viewPos"), 1, cameraPos);
 
         // transformations
         mat4 view, projection;
