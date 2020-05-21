@@ -337,8 +337,14 @@ int main (int argc, char *argv[])
 
         // draw the cube
         glUseProgram(lightingShader);
-        vec3 objectColor = {1.0f, 0.5f, 0.31f};
-        glUniform3fv(glGetUniformLocation(lightingShader, "objectColor"), 1, objectColor);
+        vec3 materialAmbient = {1.0f, 0.5f, 0.31f};
+        vec3 materialDiffuse = {1.0f, 0.5f, 0.31f};
+        vec3 materialSpecular = {0.5f, 0.5f, 0.5f};
+        float materialShininess = 32.0f;
+        glUniform3fv(glGetUniformLocation(lightingShader, "material.ambient"), 1, materialAmbient);
+        glUniform3fv(glGetUniformLocation(lightingShader, "material.diffuse"), 1, materialDiffuse);
+        glUniform3fv(glGetUniformLocation(lightingShader, "material.specular"), 1, materialSpecular);
+        glUniform1f(glGetUniformLocation(lightingShader, "material.shininess"), materialShininess);
         vec3 lightColor = {1.0f, 1.0f, 1.0f};
         glUniform3fv(glGetUniformLocation(lightingShader, "lightColor"), 1, lightColor);
         glUniform3fv(glGetUniformLocation(lightingShader, "lightPos"), 1, lightPos);
