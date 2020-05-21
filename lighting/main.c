@@ -345,9 +345,13 @@ int main (int argc, char *argv[])
         glUniform3fv(glGetUniformLocation(lightingShader, "material.diffuse"), 1, materialDiffuse);
         glUniform3fv(glGetUniformLocation(lightingShader, "material.specular"), 1, materialSpecular);
         glUniform1f(glGetUniformLocation(lightingShader, "material.shininess"), materialShininess);
-        vec3 lightColor = {1.0f, 1.0f, 1.0f};
-        glUniform3fv(glGetUniformLocation(lightingShader, "lightColor"), 1, lightColor);
-        glUniform3fv(glGetUniformLocation(lightingShader, "lightPos"), 1, lightPos);
+        vec3 lightAmbient = {0.2f, 0.2f, 0.2f};
+        vec3 lightDiffuse = {0.5f, 0.5f, 0.5f};
+        vec3 lightSpecular = {1.0f, 1.0f, 1.0f};
+        glUniform3fv(glGetUniformLocation(lightingShader, "light.ambient"), 1, lightAmbient);
+        glUniform3fv(glGetUniformLocation(lightingShader, "light.diffuse"), 1, lightDiffuse);
+        glUniform3fv(glGetUniformLocation(lightingShader, "light.specular"), 1, lightSpecular);
+        glUniform3fv(glGetUniformLocation(lightingShader, "light.position"), 1, lightPos);
         glUniform3fv(glGetUniformLocation(lightingShader, "viewPos"), 1, cameraPos);
 
         // transformations
