@@ -348,8 +348,12 @@ int main (int argc, char *argv[])
         vec3 lightAmbient = {0.2f, 0.2f, 0.2f};
         vec3 lightDiffuse = {0.5f, 0.5f, 0.5f};
         vec3 lightSpecular = {1.0f, 1.0f, 1.0f};
-        glUniform3fv(glGetUniformLocation(lightingShader, "light.ambient"), 1, lightAmbient);
-        glUniform3fv(glGetUniformLocation(lightingShader, "light.diffuse"), 1, lightDiffuse);
+        vec3 lightColor = {sin(glfwGetTime() * 2.0f), sin(glfwGetTime() * 0.7f), sin(glfwGetTime() * 1.3f)};
+        vec3 diffuseColor, ambientColor;
+        glm_vec3_mul(lightColor, lightDiffuse, diffuseColor);
+        glm_vec3_mul(diffuseColor, lightAmbient, ambientColor);
+        glUniform3fv(glGetUniformLocation(lightingShader, "light.ambient"), 1, ambientColor);
+        glUniform3fv(glGetUniformLocation(lightingShader, "light.diffuse"), 1, diffuseColor);
         glUniform3fv(glGetUniformLocation(lightingShader, "light.specular"), 1, lightSpecular);
         glUniform3fv(glGetUniformLocation(lightingShader, "light.position"), 1, lightPos);
         glUniform3fv(glGetUniformLocation(lightingShader, "viewPos"), 1, cameraPos);
