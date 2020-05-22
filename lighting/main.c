@@ -363,7 +363,7 @@ int main (int argc, char *argv[])
 
         // draw the cube
         glUseProgram(lightingShader);
-        float materialShininess = 64.0f;
+        float materialShininess = 32.0f;
         glUniform1f(glGetUniformLocation(lightingShader, "material.shininess"), materialShininess);
 
         // Bind texture units for diffuse and specular maps
@@ -375,10 +375,11 @@ int main (int argc, char *argv[])
         vec3 lightAmbient = {0.2f, 0.2f, 0.2f};
         vec3 lightDiffuse = {0.5f, 0.5f, 0.5f};
         vec3 lightSpecular = {1.0f, 1.0f, 1.0f};
+        vec3 lightDirection = {-0.2f, -1.0f, -0.3f};
         glUniform3fv(glGetUniformLocation(lightingShader, "light.ambient"), 1, lightAmbient);
         glUniform3fv(glGetUniformLocation(lightingShader, "light.diffuse"), 1, lightDiffuse);
         glUniform3fv(glGetUniformLocation(lightingShader, "light.specular"), 1, lightSpecular);
-        glUniform3fv(glGetUniformLocation(lightingShader, "light.position"), 1, lightPos);
+        glUniform3fv(glGetUniformLocation(lightingShader, "light.direction"), 1, lightDirection);
         glUniform3fv(glGetUniformLocation(lightingShader, "viewPos"), 1, cameraPos);
 
         // transformations
@@ -391,18 +392,38 @@ int main (int argc, char *argv[])
         glUniformMatrix4fv(glGetUniformLocation(lightingShader, "view"), 1, GL_FALSE, (float *) view);
         glUniformMatrix4fv(glGetUniformLocation(lightingShader, "projection"), 1, GL_FALSE, (float *) projection);
 
-        mat4 model;
-        glm_mat4_identity(model);
-        glUniformMatrix4fv(glGetUniformLocation(lightingShader, "model"), 1, GL_FALSE, (float *) model);
+        vec3 cubePositions[] = {
+            { 0.0f,  0.0f,  0.0f},
+            { 2.0f,  5.0f, -15.0f},
+            {-1.5f, -2.2f, -2.5f},
+            {-3.8f, -2.0f, -12.3f},
+            { 2.4f, -0.4f, -3.5f},
+            {-1.7f,  3.0f, -7.5f},
+            { 1.3f, -2.0f, -2.5f},
+            { 1.5f,  2.0f, -2.5f},
+            { 1.5f,  0.2f, -1.5f},
+            {-1.3f,  1.0f, -1.5f},
+        };
 
         glBindVertexArray(cubeVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        for (unsigned int i = 0; i < 10; i++) {
+            mat4 model;
+            glm_mat4_identity(model);
+            glm_translate(model, cubePositions[i]);
+            float angle = 20.0f * i;
+            vec3 axis = {1.0f, 0.3f, 0.5f};
+            glm_rotate(model, glm_rad(angle), axis);
+            glUniformMatrix4fv(glGetUniformLocation(lightingShader, "model"), 1, GL_FALSE, (float *) model);
+
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
 
         // draw the lamp object
         glUseProgram(lampShader);
         glUniformMatrix4fv(glGetUniformLocation(lampShader, "view"), 1, GL_FALSE, (float *) view);
         glUniformMatrix4fv(glGetUniformLocation(lampShader, "projection"), 1, GL_FALSE, (float *) projection);
 
+        mat4 model;
         glm_mat4_identity(model);
         glm_translate(model, lightPos);
         vec3 scale = {0.2f, 0.2f, 0.2f};
