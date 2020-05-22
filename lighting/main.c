@@ -331,8 +331,9 @@ int main (int argc, char *argv[])
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *) (6 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
-    // Load diffuse map texture
+    // Load diffuse and specular maps texture
     unsigned int diffuseMap = createTexture("resources/container2.png");
+    unsigned int specularMap = createTexture("resources/container2_specular.png");
 
     // second, configure the light's VAO (VBO stays the same; the vertices are the same for the light object which is also a 3D cube)
     unsigned int lightVAO;
@@ -346,7 +347,8 @@ int main (int argc, char *argv[])
     glEnableVertexAttribArray(0);
 
     glUseProgram(lightingShader);
-    glUniform1f(glGetUniformLocation(lightingShader, "material.diffuse"), 0);
+    glUniform1i(glGetUniformLocation(lightingShader, "material.diffuse"), 0);
+    glUniform1i(glGetUniformLocation(lightingShader, "material.specular"), 1);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -361,13 +363,14 @@ int main (int argc, char *argv[])
 
         // draw the cube
         glUseProgram(lightingShader);
-        vec3 materialSpecular = {0.5f, 0.5f, 0.5f};
         float materialShininess = 64.0f;
-        glUniform3fv(glGetUniformLocation(lightingShader, "material.specular"), 1, materialSpecular);
         glUniform1f(glGetUniformLocation(lightingShader, "material.shininess"), materialShininess);
 
+        // Bind texture units for diffuse and specular maps
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, diffuseMap);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, specularMap);
 
         vec3 lightAmbient = {0.2f, 0.2f, 0.2f};
         vec3 lightDiffuse = {0.5f, 0.5f, 0.5f};
