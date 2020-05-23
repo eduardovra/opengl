@@ -88,8 +88,6 @@ void loadMaterialTextures(Model *model, struct aiMaterial *mat, enum aiTextureTy
             exit(EXIT_FAILURE);
         }
 
-        printf("%s\n", path.data);
-
         Texture texture;
         // check if texture is already loaded
         bool loaded = false;
@@ -116,12 +114,10 @@ void loadMaterialTextures(Model *model, struct aiMaterial *mat, enum aiTextureTy
 
 Mesh processMesh(Model *model, struct aiMesh *mesh, const struct aiScene *scene)
 {
-    Vertex *vertices = malloc(mesh->mNumVertices * sizeof(Vertex));
-    unsigned int *indices = NULL;
-    Texture *textures = NULL;
-    unsigned int numVertices = mesh->mNumVertices, numIndices = 0, numTextures = 0;
-
     // process vertices
+    Vertex *vertices = malloc(mesh->mNumVertices * sizeof(Vertex));
+    unsigned int numVertices = mesh->mNumVertices;
+
     for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
         // process vertex positions, normals and texture coordinates
         Vertex vertex = {
@@ -140,11 +136,13 @@ Mesh processMesh(Model *model, struct aiMesh *mesh, const struct aiScene *scene)
 
     // process indices
     // allocate memory
+    unsigned int numIndices = 0;
+
     for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
         struct aiFace face = mesh->mFaces[i];
         numIndices += face.mNumIndices;
     }
-    indices = malloc(numIndices * sizeof(unsigned int));
+    unsigned int *indices = malloc(numIndices * sizeof(unsigned int));
     unsigned int idx = 0;
     // copy indices
     for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
@@ -155,16 +153,27 @@ Mesh processMesh(Model *model, struct aiMesh *mesh, const struct aiScene *scene)
     }
 
     // process material
+    Texture *textures = NULL;
+    unsigned int numTextures = 0;
     if (mesh->mMaterialIndex >= 0) {
         struct aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
+        // load diffuse maps
         Texture *diffuseMaps;
         unsigned int numDiffuseMaps;
         loadMaterialTextures(model, material, aiTextureType_DIFFUSE,
             "texture_diffuse", &diffuseMaps, &numDiffuseMaps);
-        //textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-        //Texture *specularMaps = loadMaterialTextures(material, 
-        //                                    aiTextureType_SPECULAR, "texture_specular");
-        //textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+
+        // load specular maps
+        Texture *specularMaps;
+        unsigned int numSpecularMaps;
+        loadMaterialTextures(model, material, aiTextureType_SPECULAR,
+            "texture_specular", &specularMaps, &numSpecularMaps);
+
+        // add to the mesh
+        numTextures = numDiffuseMaps + numSpecularMaps;
+        textures = malloc(numTextures * sizeof(Texture));
+        memcpy(textures, diffuseMaps, numDiffuseMaps * sizeof(Texture));
+        memcpy(&textures[numDiffuseMaps], specularMaps, numSpecularMaps * sizeof(Texture));
     }
 
     return createMesh(vertices, numVertices, indices, numIndices, textures, numTextures);
@@ -174,7 +183,6 @@ void processNode(Model *model, struct aiNode *node, const struct aiScene *scene)
 
 void processNode(Model *model, struct aiNode *node, const struct aiScene *scene)
 {
-    printf("processNode model->numMeshes %d\n", model->numMeshes);
     unsigned int meshesOffset = model->numMeshes;
     // alloc memory for meshes
     model->numMeshes += node->mNumMeshes;
