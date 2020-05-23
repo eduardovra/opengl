@@ -139,7 +139,7 @@ GLFWwindow* createWindow ()
     glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
@@ -152,6 +152,9 @@ int main (int argc, char *argv[])
 
     glEnable(GL_DEPTH_TEST);
 
+    // tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
+    stbi_set_flip_vertically_on_load(true);
+
     unsigned int program = createProgram("model_loading/shader.vert", "model_loading/shader.frag");
     Model model = createModel("resources/backpack/backpack.obj");
 
@@ -163,20 +166,32 @@ int main (int argc, char *argv[])
 
         processInput(window);
 
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        drawModel(&model, program);
+        glUseProgram(program);
 
-        // transformations
+        // wireframe mode
+        //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+        // view/projection transformations
         mat4 view, projection;
         vec3 center;
         glm_vec3_add(cameraPos, cameraFront, center);
         glm_lookat(cameraPos, center, cameraUp, view);
         glm_perspective(glm_rad(fov), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f, projection);
-
         glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_FALSE, (float *) view);
         glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_FALSE, (float *) projection);
+
+        // render the loaded model
+        mat4 modelMatrix;
+        glm_mat4_identity(modelMatrix);
+        vec3 auxTranslate = {0.0f, 0.0f, 0.0f};
+        glm_translate(modelMatrix, auxTranslate);
+        vec3 auxScale = {1.0f, 1.0f, 1.0f};
+        glm_scale(modelMatrix, auxScale);
+        glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_FALSE, (float *) modelMatrix);
+        drawModel(&model, program);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -185,7 +200,7 @@ int main (int argc, char *argv[])
     //glDeleteVertexArrays(1, &cubeVAO);
     //glDeleteVertexArrays(1, &lightVAO);
     //glDeleteBuffers(1, &VBO);
-    //glDeleteProgram(lightingShader);
+    glDeleteProgram(program);
 
     glfwTerminate();
 
