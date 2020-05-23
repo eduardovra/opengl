@@ -389,6 +389,7 @@ int main (int argc, char *argv[])
         glUniform3fv(glGetUniformLocation(lightingShader, "light.position"), 1, cameraPos);
         glUniform3fv(glGetUniformLocation(lightingShader, "light.direction"), 1, cameraFront);
         glUniform1f(glGetUniformLocation(lightingShader, "light.cutOff"), cos(glm_rad(12.5f)));
+        glUniform1f(glGetUniformLocation(lightingShader, "light.outerCutOff"), cos(glm_rad(17.5f)));
 
         // transformations
         mat4 view, projection;
