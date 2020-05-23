@@ -11,6 +11,9 @@
 #include <assimp/scene.h>          // Output data structure
 #include <assimp/postprocess.h>    // Post processing flags
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 #include "mesh.h"
 
 typedef struct {
