@@ -37,7 +37,7 @@ unsigned int createShader (const char *shaderPath, GLuint shaderType)
     glShaderSource(shader, 1, &shaderSource, NULL);
     glCompileShader(shader);
 
-    glGetProgramiv(shader, GL_COMPILE_STATUS, &success);
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(shader, sizeof(infoLog), NULL, infoLog);
         printf("ERROR::SHADER::COMPILATION_FAILED\n%s\n%s\n", shaderPath, infoLog);
