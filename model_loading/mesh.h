@@ -1,10 +1,13 @@
+#ifndef _MESH_H_
+#define _MESH_H_
+
 #include <glad/glad.h>
 #include <cglm/cglm.h>
 
 typedef struct {
-    vec3 Position;
-    vec3 Normal;
-    vec3 TexCoords;
+    vec3 position;
+    vec3 normal;
+    vec2 texCoords;
 } Vertex;
 
 typedef struct {
@@ -42,10 +45,10 @@ void setupMesh(Mesh *mesh)
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) 0);
     // vertex normals
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) offsetof(Vertex, Normal));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) offsetof(Vertex, normal));
     // vertex texture coords
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) offsetof(Vertex, TexCoords));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) offsetof(Vertex, texCoords));
 
     glBindVertexArray(0);
 }
@@ -78,10 +81,10 @@ void drawMesh(Mesh *mesh, unsigned int shader)
         // retrieve texture number (the N in diffuse_textureN)
         char number[50], uniform[100];
         char *name = mesh->textures[i].type;
-        if (name == "texture_diffuse") {
+        if (strcmp(name, "texture_diffuse") == 0) {
             sprintf(number, "%d", diffuseNr++);
         }
-        else if (name == "texture_specular") {
+        else if (strcmp(name, "texture_specular") == 0) {
             sprintf(number, "%d", specularNr++);
         }
         else {
@@ -100,3 +103,5 @@ void drawMesh(Mesh *mesh, unsigned int shader)
     glDrawElements(GL_TRIANGLES, mesh->numIndices, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 }
+
+#endif // _MESH_H_

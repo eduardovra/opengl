@@ -11,6 +11,7 @@
 #include "stb_image.h"
 
 #include "mesh.h"
+#include "model.h"
 
 #define SCR_WIDTH 800
 #define SCR_HEIGHT 600
@@ -140,7 +141,7 @@ GLFWwindow* createWindow ()
     glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
@@ -262,6 +263,8 @@ unsigned int createTexture (const char *imagePath)
 int main (int argc, char *argv[])
 {
     GLFWwindow *window = createWindow();
+
+    Model model = createModel("resources/backpack/backpack.obj");
 
     glEnable(GL_DEPTH_TEST);
 

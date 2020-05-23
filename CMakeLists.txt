@@ -20,6 +20,6 @@ add_executable(lighting lighting/main.c)
 target_include_directories(lighting PRIVATE external/glad/include external/stb)
 target_link_libraries(lighting glfw GL X11 pthread Xrandr Xi m glad ${CMAKE_DL_LIBS})
 
-add_executable(model_loading model_loading/main.c model_loading/mesh.h)
+add_executable(model_loading model_loading/main.c model_loading/mesh.h model_loading/model.h)
 target_include_directories(model_loading PRIVATE external/glad/include external/stb)
-target_link_libraries(model_loading glfw GL X11 pthread Xrandr Xi m glad ${CMAKE_DL_LIBS})
+target_link_libraries(model_loading glfw GL X11 pthread Xrandr Xi m glad assimp ${CMAKE_DL_LIBS})
