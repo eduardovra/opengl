@@ -1,6 +1,8 @@
 #ifndef _MESH_H_
 #define _MESH_H_
 
+#include <limits.h>
+
 #include <glad/glad.h>
 #include <cglm/cglm.h>
 
@@ -13,6 +15,7 @@ typedef struct {
 typedef struct {
     unsigned int id;
     char type[50];
+    char path[PATH_MAX];  // we store the path of the texture to compare with other textures
 } Texture;
 
 typedef struct {
