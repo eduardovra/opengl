@@ -378,13 +378,17 @@ int main (int argc, char *argv[])
         glUniform3fv(glGetUniformLocation(lightingShader, "light.ambient"), 1, lightAmbient);
         glUniform3fv(glGetUniformLocation(lightingShader, "light.diffuse"), 1, lightDiffuse);
         glUniform3fv(glGetUniformLocation(lightingShader, "light.specular"), 1, lightSpecular);
-        glUniform3fv(glGetUniformLocation(lightingShader, "light.position"), 1, lightPos);
         glUniform3fv(glGetUniformLocation(lightingShader, "viewPos"), 1, cameraPos);
 
         // point light
         glUniform1f(glGetUniformLocation(lightingShader, "light.constant"), 1.0f);
         glUniform1f(glGetUniformLocation(lightingShader, "light.linear"), 0.09f);
         glUniform1f(glGetUniformLocation(lightingShader, "light.quadratic"), 0.032f);
+
+        // spot light
+        glUniform3fv(glGetUniformLocation(lightingShader, "light.position"), 1, cameraPos);
+        glUniform3fv(glGetUniformLocation(lightingShader, "light.direction"), 1, cameraFront);
+        glUniform1f(glGetUniformLocation(lightingShader, "light.cutOff"), cos(glm_rad(12.5f)));
 
         // transformations
         mat4 view, projection;
