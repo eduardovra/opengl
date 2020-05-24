@@ -10,6 +10,7 @@
 #include "shader.h"
 #include "mesh.h"
 #include "model.h"
+#include "light_cube_vertices.h"
 
 #define SCR_WIDTH 800
 #define SCR_HEIGHT 600
@@ -156,7 +157,24 @@ int main (int argc, char *argv[])
     stbi_set_flip_vertically_on_load(true);
 
     unsigned int program = createProgram("model_loading/shader.vert", "model_loading/shader.frag");
+    unsigned int lightProgram = createProgram("model_loading/light_shader.vert", "model_loading/light_shader.frag");
     Model model = createModel("resources/backpack/backpack.obj");
+
+    // configure light cube
+    unsigned int VBO, lightCubeVAO;
+    glGenVertexArrays(1, &lightCubeVAO);
+    glGenBuffers(1, &VBO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glBindVertexArray(lightCubeVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *) 0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -173,6 +191,16 @@ int main (int argc, char *argv[])
 
         // wireframe mode
         //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+        // light properties
+        glUniform3fv(glGetUniformLocation(program, "viewPos"), 1, cameraPos);
+        glUniform3fv(glGetUniformLocation(program, "light.position"), 1, lightPos);
+        vec3 lightAmbient = {0.2f, 0.2f, 0.2f};
+        vec3 lightDiffuse = {0.5f, 0.5f, 0.5f};
+        vec3 lightSpecular = {1.0f, 1.0f, 1.0f};
+        glUniform3fv(glGetUniformLocation(program, "light.ambient"), 1, lightAmbient);
+        glUniform3fv(glGetUniformLocation(program, "light.diffuse"), 1, lightDiffuse);
+        glUniform3fv(glGetUniformLocation(program, "light.specular"), 1, lightSpecular);
 
         // view/projection transformations
         mat4 view, projection;
@@ -193,6 +221,19 @@ int main (int argc, char *argv[])
         glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_FALSE, (float *) modelMatrix);
         drawModel(&model, program);
 
+        // draw point light
+        glUseProgram(lightProgram);
+        glUniformMatrix4fv(glGetUniformLocation(lightProgram, "view"), 1, GL_FALSE, (float *) view);
+        glUniformMatrix4fv(glGetUniformLocation(lightProgram, "projection"), 1, GL_FALSE, (float *) projection);
+        glm_mat4_identity(modelMatrix);
+        glm_translate(modelMatrix, lightPos);
+        vec3 lightCubeSize = {0.2f, 0.2f, 0.2f};
+        glm_scale(modelMatrix, lightCubeSize);
+        glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_FALSE, (float *) modelMatrix);
+
+        glBindVertexArray(lightCubeVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
@@ -201,6 +242,7 @@ int main (int argc, char *argv[])
     //glDeleteVertexArrays(1, &lightVAO);
     //glDeleteBuffers(1, &VBO);
     glDeleteProgram(program);
+    glDeleteProgram(lightProgram);
 
     glfwTerminate();
 
