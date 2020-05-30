@@ -172,11 +172,25 @@ Mesh processMesh(Model *model, struct aiMesh *mesh, const struct aiScene *scene)
         loadMaterialTextures(model, material, aiTextureType_SPECULAR,
             "texture_specular", &specularMaps, &numSpecularMaps);
 
+        // load normal maps
+        Texture *normalMaps;
+        unsigned int numNormalMaps;
+        loadMaterialTextures(model, material, aiTextureType_HEIGHT,
+            "texture_normal", &normalMaps, &numNormalMaps);
+
+        // load height maps
+        Texture *heightMaps;
+        unsigned int numHeightMaps;
+        loadMaterialTextures(model, material, aiTextureType_AMBIENT,
+            "texture_height", &heightMaps, &numHeightMaps);
+
         // add to the mesh
-        numTextures = numDiffuseMaps + numSpecularMaps;
+        numTextures = numDiffuseMaps + numSpecularMaps + numNormalMaps + numHeightMaps;
         textures = malloc(numTextures * sizeof(Texture));
         memcpy(textures, diffuseMaps, numDiffuseMaps * sizeof(Texture));
         memcpy(&textures[numDiffuseMaps], specularMaps, numSpecularMaps * sizeof(Texture));
+        memcpy(&textures[numDiffuseMaps + numSpecularMaps], normalMaps, numNormalMaps * sizeof(Texture));
+        memcpy(&textures[numDiffuseMaps + numSpecularMaps + numNormalMaps], heightMaps, numHeightMaps * sizeof(Texture));
     }
 
     return createMesh(vertices, numVertices, indices, numIndices, textures, numTextures);

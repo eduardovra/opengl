@@ -141,7 +141,7 @@ GLFWwindow* createWindow ()
     glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
@@ -158,7 +158,7 @@ int main (int argc, char *argv[])
     stbi_set_flip_vertically_on_load(true);
 
     unsigned int program = createProgram("asteroids/shader.vert", "asteroids/shader.frag");
-    //unsigned int asteroidsProgram = createProgram("asteroids/asteroids_shader.vert", "asteroids/shader.frag");
+    unsigned int asteroidsProgram = createProgram("asteroids/asteroids_shader.vert", "asteroids/shader.frag");
     unsigned int lightProgram = createProgram("asteroids/light_shader.vert", "asteroids/light_shader.frag");
     Model planet = createModel("resources/planet/planet.obj");
     Model rock = createModel("resources/rock/rock.obj");
@@ -290,20 +290,18 @@ int main (int argc, char *argv[])
         drawModel(&planet, program);
 
         // draw meteorites
-        //glUseProgram(asteroidsProgram);
-        //glUniformMatrix4fv(glGetUniformLocation(asteroidsProgram, "view"), 1, GL_FALSE, (float *) view);
-        //glUniformMatrix4fv(glGetUniformLocation(asteroidsProgram, "projection"), 1, GL_FALSE, (float *) projection);
-        //glUniform1d(glGetUniformLocation(asteroidsProgram, "texture_diffuse1"), 0);
-        //glActiveTexture(GL_TEXTURE0);
-        //glBindTexture(GL_TEXTURE_2D, rock.loadedTextures[0].id);
-        for (unsigned int i = 0; i < amount; i++) {
-            glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_FALSE, (float *) &modelMatrices[i]);
-            drawModel(&rock, program);
-            //glBindVertexArray(rock.meshes[i].VAO);
-            //glDrawElementsInstanced(
-            //    GL_TRIANGLES, rock.meshes[i].numIndices, GL_UNSIGNED_INT, 0, amount
-            //);
-            //glBindVertexArray(0);
+        glUseProgram(asteroidsProgram);
+        glUniformMatrix4fv(glGetUniformLocation(asteroidsProgram, "view"), 1, GL_FALSE, (float *) view);
+        glUniformMatrix4fv(glGetUniformLocation(asteroidsProgram, "projection"), 1, GL_FALSE, (float *) projection);
+        glUniform1d(glGetUniformLocation(asteroidsProgram, "texture_diffuse1"), 0);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, rock.loadedTextures[0].id);
+        for (unsigned int i = 0; i < rock.numMeshes; i++) {
+            glBindVertexArray(rock.meshes[i].VAO);
+            glDrawElementsInstanced(
+                GL_TRIANGLES, rock.meshes[i].numIndices, GL_UNSIGNED_INT, 0, amount
+            );
+            glBindVertexArray(0);
         }
 
         // draw point light
