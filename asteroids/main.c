@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <math.h>
+#include <string.h>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -42,7 +43,7 @@ void framebuffer_size_callback (GLFWwindow* window, int width, int height)
 
 void processInput (GLFWwindow *window)
 {
-    float cameraSpeed = 2.5f * deltaTime;
+    float cameraSpeed = 10.0f * deltaTime;
     vec3 tmp, tmp2;
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
@@ -124,7 +125,7 @@ GLFWwindow* createWindow ()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
     if (window == NULL) {
         printf("Failed to create GLFW window\n");
         glfwTerminate();
@@ -140,7 +141,7 @@ GLFWwindow* createWindow ()
     glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
@@ -156,9 +157,11 @@ int main (int argc, char *argv[])
     // tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
     stbi_set_flip_vertically_on_load(true);
 
-    unsigned int program = createProgram("model_loading/shader.vert", "model_loading/shader.frag");
-    unsigned int lightProgram = createProgram("model_loading/light_shader.vert", "model_loading/light_shader.frag");
-    Model model = createModel("resources/backpack/backpack.obj");
+    unsigned int program = createProgram("asteroids/shader.vert", "asteroids/shader.frag");
+    unsigned int asteroidsProgram = createProgram("asteroids/asteroids_shader.vert", "asteroids/shader.frag");
+    unsigned int lightProgram = createProgram("asteroids/light_shader.vert", "asteroids/light_shader.frag");
+    Model planet = createModel("resources/planet/planet.obj");
+    Model rock = createModel("resources/rock/rock.obj");
 
     // configure light cube
     unsigned int VBO, lightCubeVAO;
@@ -175,6 +178,70 @@ int main (int argc, char *argv[])
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    unsigned int amount = 10000;
+    mat4 *modelMatrices = calloc(amount, sizeof(mat4));
+    srand(glfwGetTime()); // initialize random seed
+    float radius = 50.0;
+    float offset = 2.5f;
+    for (unsigned int i = 0; i < amount; i++)
+    {
+        mat4 model;
+        glm_mat4_identity(model);
+        // 1. translation: displace along circle with 'radius' in range [-offset, offset]
+        float angle = (float) i / (float) amount * 360.0f;
+        float displacement = (rand() % (int) (2 * offset * 100)) / 100.0f - offset;
+        float x = sin(angle) * radius + displacement;
+        displacement = (rand() % (int) (2 * offset * 100)) / 100.0f - offset;
+        float y = displacement * 0.4f; // keep height of field smaller compared to width of x and z
+        displacement = (rand() % (int) (2 * offset * 100)) / 100.0f - offset;
+        float z = cos(angle) * radius + displacement;
+        vec3 t = {x, y, z};
+        glm_translate(model, t);
+
+        // 2. scale: scale between 0.05 and 0.25f
+        float scale = (rand() % 20) / 100.0f + 0.05;
+        vec3 s = {scale, scale, scale};
+        glm_scale(model, s);
+
+        // 3. rotation: add random rotation around a (semi)randomly picked rotation axis vector
+        float rotAngle = (rand() % 360);
+        vec3 r = {0.4f, 0.6f, 0.8f};
+        glm_rotate(model, rotAngle, r);
+
+        // 4. now add to list of matrices
+        memcpy(&modelMatrices[i], model, sizeof(model));
+    }
+
+    // vertex buffer object
+    unsigned int buffer;
+    glGenBuffers(1, &buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    glBufferData(GL_ARRAY_BUFFER, amount * sizeof(mat4), modelMatrices, GL_STATIC_DRAW);
+
+    for (unsigned int i = 0; i < rock.numMeshes; i++) {
+        unsigned int VAO = rock.meshes[i].VAO;
+        glBindVertexArray(VAO);
+        // vertex attributes
+        size_t vec4Size = sizeof(vec4);
+        glEnableVertexAttribArray(3);
+        glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void *) 0);
+        glEnableVertexAttribArray(4);
+        glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void *) (1 * vec4Size));
+        glEnableVertexAttribArray(5);
+        glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void *) (2 * vec4Size));
+        glEnableVertexAttribArray(6);
+        glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void *) (3 * vec4Size));
+
+        glVertexAttribDivisor(3, 1);
+        glVertexAttribDivisor(4, 1);
+        glVertexAttribDivisor(5, 1);
+        glVertexAttribDivisor(6, 1);
+
+        glBindVertexArray(0);
+    }
+
+    free(modelMatrices);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -214,12 +281,27 @@ int main (int argc, char *argv[])
         // render the loaded model
         mat4 modelMatrix;
         glm_mat4_identity(modelMatrix);
-        vec3 auxTranslate = {0.0f, 0.0f, 0.0f};
+        vec3 auxTranslate = {0.0f, -3.0f, 0.0f};
         glm_translate(modelMatrix, auxTranslate);
-        vec3 auxScale = {1.0f, 1.0f, 1.0f};
+        vec3 auxScale = {4.0f, 4.0f, 4.0f};
         glm_scale(modelMatrix, auxScale);
         glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_FALSE, (float *) modelMatrix);
-        drawModel(&model, program);
+        drawModel(&planet, program);
+
+        // draw meteorites
+        glUseProgram(asteroidsProgram);
+        glUniformMatrix4fv(glGetUniformLocation(asteroidsProgram, "view"), 1, GL_FALSE, (float *) view);
+        glUniformMatrix4fv(glGetUniformLocation(asteroidsProgram, "projection"), 1, GL_FALSE, (float *) projection);
+        glUniform1d(glGetUniformLocation(asteroidsProgram, "texture_diffuse1"), 0);
+        glActiveTexture(GL_TEXTURE0);
+        //glBindTexture(GL_TEXTURE_2D, rock.loadedTextures[0].id);
+        for (unsigned int i = 0; i < rock.numMeshes; i++) {
+            glBindVertexArray(rock.meshes[i].VAO);
+            glDrawElementsInstanced(
+                GL_TRIANGLES, rock.meshes[i].numIndices, GL_UNSIGNED_INT, 0, amount
+            );
+            glBindVertexArray(0);
+        }
 
         // draw point light
         glUseProgram(lightProgram);

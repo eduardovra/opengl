@@ -209,7 +209,7 @@ void processNode(Model *model, struct aiNode *node, const struct aiScene *scene)
 
 void loadModel(Model *model, const char *path)
 {
-    const struct aiScene *scene = aiImportFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+    const struct aiScene *scene = aiImportFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
         printf("ERROR::ASSIMP::%s\n", aiGetErrorString());
