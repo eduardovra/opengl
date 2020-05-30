@@ -179,9 +179,8 @@ int main (int argc, char *argv[])
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    unsigned int amount = 1000;
-    //mat4 *modelMatrices = calloc(amount, sizeof(mat4));
-    mat4 modelMatrices[amount]; //
+    unsigned int amount = 100000;
+    mat4 *modelMatrices = calloc(amount, sizeof(mat4));
     srand(glfwGetTime()); // initialize random seed
     float radius = 50.0;
     float offset = 2.5f;
@@ -211,7 +210,7 @@ int main (int argc, char *argv[])
         glm_rotate(model, rotAngle, r);
 
         // 4. now add to list of matrices
-        memcpy(&modelMatrices[i], model, sizeof(model));
+        memcpy(modelMatrices[i], model, sizeof(model));
     }
 
     // vertex buffer object
@@ -242,7 +241,7 @@ int main (int argc, char *argv[])
         glBindVertexArray(0);
     }
 
-    //free(modelMatrices);
+    free(modelMatrices);
 
     while (!glfwWindowShouldClose(window))
     {
