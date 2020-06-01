@@ -1,13 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <math.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <cglm/cglm.h>
 
+#include "camera.h"
 #include "shader.h"
 #include "mesh.h"
 #include "model.h"
@@ -16,99 +17,65 @@
 #define SCR_WIDTH 800
 #define SCR_HEIGHT 600
 
-vec3 cameraPos = {0.0f, 0.0f, 3.0f};
-vec3 cameraFront = {0.0f, 0.0f, -1.0f};
-vec3 cameraUp = {0.0f, 1.0f, 0.0f};
+Camera camera;
 
+float lastX = SCR_WIDTH / 2.0f;
+float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
-float yaw   = -90.0f; // yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right so we initially rotate a bit to the left.
-float pitch =  0.0f;
-float lastX = SCR_WIDTH / 2, lastY = SCR_HEIGHT / 2;
-float fov   =  45.0f;
 
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 
 vec3 lightPos = {1.2f, 1.0f, 2.0f};
 
-void error_callback (int error, const char* description)
+void error_callback (int error, const char *description)
 {
     printf("%s\n", description);
 }
 
-void framebuffer_size_callback (GLFWwindow* window, int width, int height)
+void framebuffer_size_callback (GLFWwindow *window, int width, int height)
 {
     glViewport(0, 0, width, height);
 }
 
-void processInput (GLFWwindow *window)
+void mouse_callback (GLFWwindow *window, double xpos, double ypos)
 {
-    float cameraSpeed = 10.0f * deltaTime;
-    vec3 tmp, tmp2;
+    if (firstMouse) {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
 
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        glm_vec3_scale(cameraFront, cameraSpeed, tmp);
-        glm_vec3_add(cameraPos, tmp, cameraPos);
-    }
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        glm_vec3_scale(cameraFront, cameraSpeed, tmp);
-        glm_vec3_sub(cameraPos, tmp, cameraPos);
-    }
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        glm_vec3_cross(cameraFront, cameraUp, tmp);
-        glm_vec3_normalize(tmp);
-        glm_vec3_scale(tmp, cameraSpeed, tmp2);
-        glm_vec3_sub(cameraPos, tmp2, cameraPos);
-    }
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        glm_vec3_cross(cameraFront, cameraUp, tmp);
-        glm_vec3_normalize(tmp);
-        glm_vec3_scale(tmp, cameraSpeed, tmp2);
-        glm_vec3_add(cameraPos, tmp2, cameraPos);
-    }
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
-    }
-}
-
-void mouse_callback (GLFWwindow* window, double xpos, double ypos)
-{
     float xoffset = xpos - lastX;
     float yoffset = lastY - ypos; // reversed since y-coordinates range from bottom to top
+
     lastX = xpos;
     lastY = ypos;
 
-    const float sensitivity = 0.05f;
-    xoffset *= sensitivity;
-    yoffset *= sensitivity;
-
-    yaw += xoffset;
-    pitch += yoffset;
-
-    if (pitch > 89.0f) {
-        pitch = 89.0f;
-    }
-    if (pitch < -89.0f) {
-        pitch = -89.0f;
-    }
-
-    float x = cos(glm_rad(yaw)) * cos(glm_rad(pitch));
-    float y = sin(glm_rad(pitch));
-    float z = sin(glm_rad(yaw)) * cos(glm_rad(pitch));
-    vec3 direction = {x, y, z};
-    glm_vec3_normalize_to(direction, cameraFront);
+    processMouseMovement(&camera, xoffset, yoffset);
 }
 
-void scroll_callback (GLFWwindow* window, double xoffset, double yoffset)
+void scroll_callback (GLFWwindow *window, double xoffset, double yoffset)
 {
-    if (fov >= 1.0f && fov <= 45.0f) {
-        fov -= yoffset;
+    processMouseScroll(&camera, yoffset);
+}
+
+void processInput (GLFWwindow *window)
+{
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+        processKeyboard(&camera, FORWARD, deltaTime);
     }
-    if (fov < 1.0f) {
-        fov = 1.0f;
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+        processKeyboard(&camera, BACKWARD, deltaTime);
     }
-    if (fov > 45.0f) {
-        fov = 45.0f;
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+        processKeyboard(&camera, LEFT, deltaTime);
+    }
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+        processKeyboard(&camera, RIGHT, deltaTime);
+    }
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
 }
 
@@ -150,6 +117,7 @@ GLFWwindow* createWindow ()
 
 int main (int argc, char *argv[])
 {
+    initCamera(&camera);
     GLFWwindow *window = createWindow();
 
     glEnable(GL_DEPTH_TEST);
@@ -175,9 +143,6 @@ int main (int argc, char *argv[])
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *) 0);
     glEnableVertexAttribArray(0);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     unsigned int amount = 100000;
     mat4 *modelMatrices = calloc(amount, sizeof(mat4));
@@ -260,7 +225,7 @@ int main (int argc, char *argv[])
         //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
         // light properties
-        glUniform3fv(glGetUniformLocation(program, "viewPos"), 1, cameraPos);
+        glUniform3fv(glGetUniformLocation(program, "viewPos"), 1, camera.cameraPos);
         glUniform3fv(glGetUniformLocation(program, "light.position"), 1, lightPos);
         vec3 lightAmbient = {0.2f, 0.2f, 0.2f};
         vec3 lightDiffuse = {0.5f, 0.5f, 0.5f};
@@ -271,10 +236,8 @@ int main (int argc, char *argv[])
 
         // view/projection transformations
         mat4 view, projection;
-        vec3 center;
-        glm_vec3_add(cameraPos, cameraFront, center);
-        glm_lookat(cameraPos, center, cameraUp, view);
-        glm_perspective(glm_rad(fov), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f, projection);
+        getViewMatrix(&camera, view);
+        glm_perspective(glm_rad(camera.fov), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f, projection);
         glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_FALSE, (float *) view);
         glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_FALSE, (float *) projection);
 

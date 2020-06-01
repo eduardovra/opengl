@@ -29,7 +29,7 @@ target_include_directories(model_loading PRIVATE external/glad/include external/
 target_link_libraries(model_loading glfw GL X11 pthread Xrandr Xi m c glad assimp ${CMAKE_DL_LIBS})
 #target_compile_options(model_loading PRIVATE -Wall -Wextra -Werror)
 
-add_executable(asteroids asteroids/main.c asteroids/mesh.h asteroids/model.h asteroids/shader.h)
+add_executable(asteroids asteroids/main.c asteroids/mesh.h asteroids/model.h asteroids/shader.h asteroids/camera.h)
 target_include_directories(asteroids PRIVATE external/glad/include external/stb)
 target_link_libraries(asteroids glfw GL X11 pthread Xrandr Xi m c glad assimp ${CMAKE_DL_LIBS})
 #target_compile_options(asteroids PRIVATE -Wall -Wextra -Werror)
