@@ -31,8 +31,16 @@ bool firstMouse = true;
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 
-struct ImGuiContext *ctx;
-struct ImGuiIO *io;
+//struct ImGuiContext *ctx;
+//struct ImGuiIO *io;
+
+vec3 colorGrey = {0.5f, 0.5f, 0.5f};
+vec3 colorRed = {1.0f, 0.0f, 0.0f};
+vec3 colorGreen = {0.0f, 1.0f, 0.0f};
+vec3 colorBlue = {0.0f, 0.0f, 1.0f};
+
+vec2 currentCubePos = {0.0f, 10.0f};
+float cubeSpeed = 0.2f;
 
 void error_callback (int error, const char *description)
 {
@@ -83,6 +91,36 @@ void processInput (GLFWwindow *window)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
+
+    static bool moveLeft = true, moveRight = true;
+
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+        if (moveLeft) {
+            if (currentCubePos[0] > -5.0f) {
+                currentCubePos[0] -= 1.0f;
+            }
+            moveLeft = false;
+        }
+    }
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_RELEASE) {
+        moveLeft = true;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+        if (moveRight) {
+            if (currentCubePos[0] < 4.0f) {
+                currentCubePos[0] += 1.0f;
+            }
+            moveRight = false;
+        }
+    }
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_RELEASE) {
+        moveRight = true;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+        cubeSpeed += 0.01f;
+    }
 }
 
 GLFWwindow* createWindow ()
@@ -121,9 +159,31 @@ GLFWwindow* createWindow ()
     return window;
 }
 
-void drawCube(unsigned int x, unsigned int y)
+void drawCube (unsigned int program, float x, float y, float *color)
 {
     mat4 model;
+    vec3 pos = {x, y, 0.0f};
+
+    glm_mat4_identity(model);
+    glm_translate(model, pos);
+    glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_FALSE, (float *) model);
+    glUniform3fv(glGetUniformLocation(program, "color"), 1, color);
+
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+}
+
+void drawBoard (unsigned int program)
+{
+    // 12 x 22 colunas
+    for (float x = -6.0f; x <= 5.0f; x++) {
+        drawCube(program, x, -11.0f, colorGrey);
+        drawCube(program, x, 11.0f, colorGrey);
+    }
+
+    for (float y = -11.0f; y <= 11.0f; y++) {
+        drawCube(program, -6.0f, y, colorGrey);
+        drawCube(program, 5.0f, y, colorGrey);
+    }
 }
 
 int main (int argc, char *argv[])
@@ -163,8 +223,6 @@ int main (int argc, char *argv[])
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *) 0);
     glEnableVertexAttribArray(0);
 
-    vec3 lightPos = {0.0f, -1.0f, 0.0f};
-
     while (!glfwWindowShouldClose(window))
     {
         float currentFrame = glfwGetTime();
@@ -180,32 +238,30 @@ int main (int argc, char *argv[])
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
         // view/projection transformations
-        mat4 model, view, projection;
+        mat4 view, projection;
         getViewMatrix(&camera, view);
         glm_perspective(glm_rad(camera.fov), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f, projection);
 
-        // draw point light
-        glUseProgram(lightProgram);
-
-        glm_mat4_identity(model);
-        lightPos[1] += 1.0f * sin((float) glfwGetTime()) * deltaTime;
-        glm_translate(model, lightPos);
-        vec3 lightCubeSize = {0.2f, 0.2f, 0.2f};
-        glm_scale(model, lightCubeSize);
         glUniformMatrix4fv(glGetUniformLocation(lightProgram, "view"), 1, GL_FALSE, (float *) view);
         glUniformMatrix4fv(glGetUniformLocation(lightProgram, "projection"), 1, GL_FALSE, (float *) projection);
-        glUniformMatrix4fv(glGetUniformLocation(lightProgram, "model"), 1, GL_FALSE, (float *) model);
 
+        glUseProgram(lightProgram);
         glBindVertexArray(lightCubeVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
 
-        mat4 cubo2model;
-        glm_mat4_identity(cubo2model);
-        vec3 cubo2pos = {-1.0f, lightPos[1], lightPos[2]};
-        glm_translate(cubo2model, cubo2pos);
-        glm_scale(cubo2model, lightCubeSize);
-        glUniformMatrix4fv(glGetUniformLocation(lightProgram, "model"), 1, GL_FALSE, (float *) cubo2model);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        drawBoard(lightProgram);
+        drawCube(lightProgram, -5.0f, -10.0f, colorRed);
+        drawCube(lightProgram, -4.0f, -10.0f, colorRed);
+        drawCube(lightProgram, -3.0f, -10.0f, colorRed);
+        drawCube(lightProgram, -2.0f, -10.0f, colorGreen);
+        drawCube(lightProgram, -1.0f, -10.0f, colorRed);
+        drawCube(lightProgram, 0.0f, -10.0f, colorRed);
+        drawCube(lightProgram, 1.0f, -10.0f, colorRed);
+        drawCube(lightProgram, 2.0f, -10.0f, colorBlue);
+        drawCube(lightProgram, 3.0f, -10.0f, colorRed);
+        drawCube(lightProgram, 4.0f, -10.0f, colorRed);
+
+        currentCubePos[1] -= cubeSpeed * deltaTime * glfwGetTime();
+        drawCube(lightProgram, currentCubePos[0], currentCubePos[1], colorGreen);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

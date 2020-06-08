@@ -44,7 +44,7 @@ void updateCameraVectors (Camera *camera)
 void initCamera (Camera *camera)
 {
     Camera cameraData = {
-        .cameraPos = {0.0f, 0.0f, 3.0f},
+        .cameraPos = {0.0f, 0.0f, 32.0f},
         .cameraFront = {0.0f, 0.0f, -1.0f},
         .cameraUp = {0.0f, 1.0f, 0.0f},
 
@@ -60,7 +60,7 @@ void initCamera (Camera *camera)
 
 void processKeyboard (Camera *camera, Camera_Movement direction, float deltaTime)
 {
-    float cameraSpeed = 2.5f * deltaTime;
+    float cameraSpeed = 15.0f * deltaTime;
     vec3 tmp, tmp2;
 
     if (direction == FORWARD) {
