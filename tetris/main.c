@@ -186,6 +186,15 @@ void drawBoard (unsigned int program)
     }
 }
 
+void drawTetromino (unsigned int program, const char *type, float x, float y, float *color)
+{
+    if (!strcmp(type, "I")) {
+        for (float i = 0; i < 4; i++) {
+            drawCube(program, x + i, y, color);
+        }
+    }
+}
+
 int main (int argc, char *argv[])
 {
     initCamera(&camera);
@@ -265,6 +274,8 @@ int main (int argc, char *argv[])
             currentCubePos[1] = -9.0f;
         }
         drawCube(lightProgram, currentCubePos[0], currentCubePos[1], colorGreen);
+
+        drawTetromino(lightProgram, "I", 0.0f, 0.0f, colorBlue);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
