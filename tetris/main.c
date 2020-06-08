@@ -261,6 +261,9 @@ int main (int argc, char *argv[])
         drawCube(lightProgram, 4.0f, -10.0f, colorRed);
 
         currentCubePos[1] -= cubeSpeed * deltaTime * glfwGetTime();
+        if (currentCubePos[1] < -9.0f) {
+            currentCubePos[1] = -9.0f;
+        }
         drawCube(lightProgram, currentCubePos[0], currentCubePos[1], colorGreen);
 
         glfwSwapBuffers(window);
