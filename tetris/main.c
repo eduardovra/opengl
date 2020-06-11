@@ -18,6 +18,7 @@
 #include "mesh.h"
 #include "model.h"
 #include "light_cube_vertices.h"
+#include "pieces.h"
 
 #define SCR_WIDTH 800
 #define SCR_HEIGHT 600
@@ -41,6 +42,7 @@ vec3 colorBlue = {0.0f, 0.0f, 1.0f};
 
 vec2 currentCubePos = {0.0f, 10.0f};
 float cubeSpeed = 0.2f;
+int rotation = 0;
 
 void error_callback (int error, const char *description)
 {
@@ -121,6 +123,20 @@ void processInput (GLFWwindow *window)
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
         cubeSpeed += 0.01f;
     }
+
+    static bool rotate = true;
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+        if (rotate) {
+            if (++rotation == 4) {
+                rotation = 0;
+            }
+            rotate = false;
+        }
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE) {
+        rotate = true;
+    }
 }
 
 GLFWwindow* createWindow ()
@@ -186,11 +202,13 @@ void drawBoard (unsigned int program)
     }
 }
 
-void drawTetromino (unsigned int program, const char *type, float x, float y, float *color)
+void drawTetromino (unsigned int program, int piece, int rot, float x, float y, float *color)
 {
-    if (!strcmp(type, "I")) {
-        for (float i = 0; i < 4; i++) {
-            drawCube(program, x + i, y, color);
+    for (int i = 0; i < 5; i++) {
+        for (int j = 0; j < 5; j++) {
+            if (GetBlockType(piece, rot, i, j)) {
+                drawCube(program, x + i, y + j, color);
+            }
         }
     }
 }
@@ -273,9 +291,8 @@ int main (int argc, char *argv[])
         if (currentCubePos[1] < -9.0f) {
             currentCubePos[1] = -9.0f;
         }
-        drawCube(lightProgram, currentCubePos[0], currentCubePos[1], colorGreen);
 
-        drawTetromino(lightProgram, "I", 0.0f, 0.0f, colorBlue);
+        drawTetromino(lightProgram, 2, rotation, currentCubePos[0], currentCubePos[1], colorBlue);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
