@@ -23,8 +23,8 @@
 #define SCR_WIDTH 800
 #define SCR_HEIGHT 600
 
-#define BOARD_ROWS 12
-#define BOARD_COLS 22
+#define BOARD_ROWS 22
+#define BOARD_COLS 12
 
 Camera camera;
 
@@ -57,7 +57,7 @@ vec3 colorsDef[] = {
 vec2 currentCubePos = {0.0f, 10.0f};
 float cubeSpeed = 0.2f;
 int rotation = 0;
-unsigned int board[BOARD_ROWS][BOARD_COLS];
+unsigned int board[BOARD_COLS][BOARD_ROWS];
 
 void error_callback (int error, const char *description)
 {
@@ -193,7 +193,7 @@ GLFWwindow* createWindow ()
 void drawCube (unsigned int program, float x, float y, float *color)
 {
     mat4 model;
-    vec3 pos = {x - (BOARD_ROWS / 2), y - (BOARD_COLS / 2), 0.0f};
+    vec3 pos = {x - (BOARD_COLS / 2), y - (BOARD_ROWS / 2), 0.0f};
 
     glm_mat4_identity(model);
     glm_translate(model, pos);
@@ -222,22 +222,22 @@ void initBoard ()
     memset(board, COLOR_BLACK, sizeof(board));
 
     // lateral columns
-    for (unsigned int x = 0; x < BOARD_ROWS; x++) {
+    for (unsigned int x = 0; x < BOARD_COLS; x++) {
         board[x][0] = COLOR_GREY;
-        board[x][BOARD_COLS - 1] = COLOR_GREY;
+        board[x][BOARD_ROWS - 1] = COLOR_GREY;
     }
 
     // upper and bottom rows
-    for (unsigned int y = 0; y < BOARD_COLS; y++) {
+    for (unsigned int y = 0; y < BOARD_ROWS; y++) {
         board[0][y] = COLOR_GREY;
-        board[BOARD_ROWS - 1][y] = COLOR_GREY;
+        board[BOARD_COLS - 1][y] = COLOR_GREY;
     }
 }
 
 void renderBoard (unsigned int program)
 {
-    for (unsigned int x = 0; x < BOARD_ROWS; x++) {
-        for (unsigned int y = 0; y < BOARD_COLS; y++) {
+    for (unsigned int x = 0; x < BOARD_COLS; x++) {
+        for (unsigned int y = 0; y < BOARD_ROWS; y++) {
             unsigned int piece = board[x][y];
             if (piece) {
                 vec3 color = {0.5f, 0.5f, 0.5f};
