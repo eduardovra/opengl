@@ -38,6 +38,13 @@ float lastFrame = 0.0f; // Time of last frame
 //struct ImGuiContext *ctx;
 //struct ImGuiIO *io;
 
+typedef struct {
+    int type;
+    int color;
+    int rotation;
+    vec2 position;
+} tPiece;
+
 typedef enum {
     COLOR_BLACK = 0,
     COLOR_GREY = 1,
@@ -58,6 +65,7 @@ vec2 currentCubePos = {0.0f, 10.0f};
 float cubeSpeed = 0.2f;
 int rotation = 0;
 unsigned int board[BOARD_COLS][BOARD_ROWS];
+tPiece currentPiece;
 
 void error_callback (int error, const char *description)
 {
@@ -202,21 +210,7 @@ void drawCube (unsigned int program, float x, float y, float *color)
 
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
-/*
-void drawBoard (unsigned int program)
-{
-    // 12 x 22 colunas
-    for (float x = -6.0f; x <= 5.0f; x++) {
-        drawCube(program, x, -11.0f, colorGrey);
-        drawCube(program, x, 11.0f, colorGrey);
-    }
 
-    for (float y = -11.0f; y <= 11.0f; y++) {
-        drawCube(program, -6.0f, y, colorGrey);
-        drawCube(program, 5.0f, y, colorGrey);
-    }
-}
-*/
 void initBoard ()
 {
     memset(board, COLOR_BLACK, sizeof(board));
@@ -240,22 +234,33 @@ void renderBoard (unsigned int program)
         for (unsigned int y = 0; y < BOARD_ROWS; y++) {
             unsigned int piece = board[x][y];
             if (piece) {
-                vec3 color = {0.5f, 0.5f, 0.5f};
+                float *color = colorsDef[piece];
                 drawCube(program, (float) x, (float) y, color);
             }
         }
     }
 }
 
-void drawTetromino (unsigned int program, int piece, int rot, float x, float y, float *color)
+void renderPiece (unsigned int program)
 {
-    for (int i = 0; i < 5; i++) {
-        for (int j = 0; j < 5; j++) {
-            if (GetBlockType(piece, rot, i, j)) {
-                drawCube(program, x + i, y + j, color);
+    for (unsigned int x = 0; x < 5; x++) {
+        for (unsigned int y = 0; y < 5; y++) {
+            if (GetBlockType(currentPiece.type, currentPiece.rotation, x, y)) {
+                float *color = colorsDef[currentPiece.color];
+                drawCube(program, x + currentPiece.position[0], y + currentPiece.position[1], color);
             }
         }
     }
+}
+
+void spawnPiece ()
+{
+    vec2 position = {0.0f, 0.0f};
+
+    memcpy(currentPiece.position, position, sizeof(position));
+    currentPiece.color = COLOR_RED;
+    currentPiece.rotation = 1;
+    currentPiece.type = 2;
 }
 
 int main (int argc, char *argv[])
@@ -296,6 +301,7 @@ int main (int argc, char *argv[])
     glEnableVertexAttribArray(0);
 
     initBoard();
+    spawnPiece();
 
     while (!glfwWindowShouldClose(window))
     {
@@ -323,6 +329,7 @@ int main (int argc, char *argv[])
         glBindVertexArray(lightCubeVAO);
 
         renderBoard(lightProgram);
+        renderPiece(lightProgram);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
