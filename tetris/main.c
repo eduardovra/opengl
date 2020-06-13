@@ -301,6 +301,7 @@ int main (int argc, char *argv[])
 
     initBoard();
     spawnPiece();
+    float elapsedTime = 0.0f;
 
     while (!glfwWindowShouldClose(window))
     {
@@ -326,6 +327,12 @@ int main (int argc, char *argv[])
 
         glUseProgram(lightProgram);
         glBindVertexArray(lightCubeVAO);
+
+        elapsedTime += deltaTime;
+        if (elapsedTime > 0.5f) {
+            elapsedTime = 0.0f;
+            currentPiece.position[1] -= 1.0f;
+        }
 
         renderBoard(lightProgram);
         renderPiece(lightProgram);
