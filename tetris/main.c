@@ -243,8 +243,8 @@ void renderBoard (unsigned int program)
 
 void renderPiece (unsigned int program)
 {
-    for (unsigned int x = 0; x < 5; x++) {
-        for (unsigned int y = 0; y < 5; y++) {
+    for (float x = 0.0f; x < 5.0f; x++) {
+        for (float y = 0.0f; y < 5.0f; y++) {
             if (GetBlockType(currentPiece.type, currentPiece.rotation, x, y)) {
                 float *color = colorsDef[currentPiece.color];
                 drawCube(program, x + currentPiece.position[0], y + currentPiece.position[1], color);
@@ -255,12 +255,11 @@ void renderPiece (unsigned int program)
 
 void spawnPiece ()
 {
-    vec2 position = {0.0f, 0.0f};
-
-    memcpy(currentPiece.position, position, sizeof(position));
     currentPiece.color = COLOR_RED;
     currentPiece.rotation = 1;
     currentPiece.type = 2;
+    currentPiece.position[0] = GetXInitialPosition(currentPiece.type, currentPiece.rotation);
+    currentPiece.position[1] = GetYInitialPosition(currentPiece.type, currentPiece.rotation);
 }
 
 int main (int argc, char *argv[])
