@@ -105,12 +105,13 @@ bool pieceCanMove (int rotation, int x, int y)
     // calculate new blocks position
     for (unsigned int blockX = 0; blockX < 5; blockX++) {
         for (unsigned int blockY = 0; blockY < 5; blockY++) {
-            if (GetBlockType(currentPiece.type, rotation, x, y)) {
+            if (GetBlockType(currentPiece.type, currentPiece.rotation, blockX, blockY)) {
                 int newX = blockX + x;
                 int newY = blockY + y;
-                if (newX >= 0 && newY >= 0) {
+                printf("collision newX: %d newY: %d\n", newX, newY);
+                if (newX >= 0 && newY >= 0 && newX < BOARD_ROWS && newY < BOARD_COLS) {
                     if (board[newX][newY]) {
-                        //return false;
+                        return false;
                     }
                 }
             }
@@ -162,6 +163,10 @@ void processInput (GLFWwindow *window)
         if (moveLeft) {
             if (pieceCanMove(currentPiece.rotation, currentPiece.position.row, currentPiece.position.col - 1)) {
                 currentPiece.position.col -= 1;
+                printf("can move\n");
+            }
+            else {
+                printf("cant move\n");
             }
             moveLeft = false;
             printf("row: %d col: %d\n", currentPiece.position.row, currentPiece.position.col);
@@ -345,10 +350,6 @@ void renderBoard (unsigned int program)
             int piece = board[row][col];
             if (piece) {
                 float *color = colorsDef[piece];
-                //if (row == 0) {
-                //    vec3 high = {1.0f, 1.0f, 1.0f};
-                //    color = high;
-                //}
                 drawCubeInBoard(program, row, col, color);
             }
         }
@@ -457,14 +458,14 @@ int main (int argc, char *argv[])
         if (elapsedTime > 1.5f) { // 500 ms
             elapsedTime = 0.0f;
 
-            if (pieceCanMove(currentPiece.rotation, currentPiece.position.row + 1, currentPiece.position.col)) {
+            //if (pieceCanMove(currentPiece.rotation, currentPiece.position.row + 1, currentPiece.position.col)) {
                 //currentPiece.position.row += 1;
                 //printf("row: %d col: %d\n", currentPiece.position.row, currentPiece.position.col);
-            }
-            else {
+            //}
+            //else {
                 // Collision with ground detected
                 // add piece to board and spawn a new one
-            }
+            //}
         }
 
         paintCollision();
