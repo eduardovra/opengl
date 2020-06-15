@@ -42,7 +42,10 @@ typedef struct {
     int type;
     int color;
     int rotation;
-    vec2 position;
+    struct {
+        int x;
+        int y;
+    } position;
 } tPiece;
 
 typedef enum {
@@ -61,10 +64,8 @@ vec3 colorsDef[] = {
     {0.0f, 0.0f, 1.0f}, // blue
 };
 
-vec2 currentCubePos = {0.0f, 10.0f};
 float cubeSpeed = 0.2f;
-int rotation = 0;
-unsigned int board[BOARD_COLS][BOARD_ROWS];
+unsigned int board[BOARD_ROWS][BOARD_COLS];
 tPiece currentPiece;
 
 void error_callback (int error, const char *description)
@@ -99,6 +100,44 @@ void scroll_callback (GLFWwindow *window, double xoffset, double yoffset)
     processMouseScroll(&camera, yoffset);
 }
 
+bool pieceCanMove (int rotation, int x, int y)
+{
+    // calculate new blocks position
+    for (unsigned int blockX = 0; blockX < 5; blockX++) {
+        for (unsigned int blockY = 0; blockY < 5; blockY++) {
+            if (GetBlockType(currentPiece.type, rotation, x, y)) {
+                int newX = blockX + x;
+                int newY = blockY + y;
+                if (newX >= 0 && newY >= 0) {
+                    if (board[newX][newY]) {
+                        //return false;
+                    }
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
+bool paintCollision ()
+{
+    // calculate new blocks position
+    for (unsigned int blockX = 0; blockX < 5; blockX++) {
+        for (unsigned int blockY = 0; blockY < 5; blockY++) {
+            if (GetBlockType(currentPiece.type, currentPiece.rotation, currentPiece.position.x, currentPiece.position.y)) {
+                int newX = blockX + currentPiece.position.x;
+                int newY = blockY + currentPiece.position.y;
+                if (newX >= 0 && newY >= 0 && newX < BOARD_COLS && newY < BOARD_ROWS) {
+                    if (board[newX][newY]) {
+                        board[newX][newY] = COLOR_GREEN;
+                    }
+                }
+            }
+        }
+    }
+}
+
 void processInput (GLFWwindow *window)
 {
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
@@ -121,8 +160,8 @@ void processInput (GLFWwindow *window)
 
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
         if (moveLeft) {
-            if (currentCubePos[0] > -5.0f) {
-                currentCubePos[0] -= 1.0f;
+            if (pieceCanMove(currentPiece.rotation, currentPiece.position.x - 1, currentPiece.position.y)) {
+                currentPiece.position.x -= 1;
             }
             moveLeft = false;
         }
@@ -133,8 +172,8 @@ void processInput (GLFWwindow *window)
 
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
         if (moveRight) {
-            if (currentCubePos[0] < 4.0f) {
-                currentCubePos[0] += 1.0f;
+            if (pieceCanMove(currentPiece.rotation, currentPiece.position.x + 1, currentPiece.position.y)) {
+                currentPiece.position.x += 1;
             }
             moveRight = false;
         }
@@ -150,8 +189,12 @@ void processInput (GLFWwindow *window)
     static bool rotate = true;
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
         if (rotate) {
-            if (++rotation == 4) {
-                rotation = 0;
+            int newRotation = currentPiece.rotation + 1;
+            if (newRotation == 4) {
+                newRotation = 0;
+            }
+            if (pieceCanMove(newRotation, currentPiece.position.x, currentPiece.position.y)) {
+                currentPiece.rotation = newRotation;
             }
             rotate = false;
         }
@@ -201,7 +244,7 @@ GLFWwindow* createWindow ()
 void drawCube (unsigned int program, float x, float y, float *color)
 {
     mat4 model;
-    vec3 pos = {x - (BOARD_COLS / 2), y - (BOARD_ROWS / 2), 0.0f};
+    vec3 pos = {x, y, 0.0f};
 
     glm_mat4_identity(model);
     glm_translate(model, pos);
@@ -209,6 +252,13 @@ void drawCube (unsigned int program, float x, float y, float *color)
     glUniform3fv(glGetUniformLocation(program, "color"), 1, color);
 
     glDrawArrays(GL_TRIANGLES, 0, 36);
+}
+
+void drawCubeInBoard (unsigned int program, int row, int col, float *color)
+{
+    float x = col - (BOARD_COLS / 2);
+    float y = (BOARD_ROWS / 2) - row;
+    drawCube(program, x, y, color);
 }
 
 void initBoard ()
@@ -226,16 +276,46 @@ void initBoard ()
         board[0][y] = COLOR_GREY;
         board[BOARD_COLS - 1][y] = COLOR_GREY;
     }
+
+    memset(board, COLOR_BLACK, sizeof(board));
+
+    unsigned int b[BOARD_ROWS][BOARD_COLS] = {
+        {1,1,1,1,1,1,1,1,1,1,1,1},
+        {1,0,0,0,0,0,0,0,0,0,0,1},
+        {1,0,0,0,0,0,0,0,0,0,0,1},
+        {1,0,0,0,0,0,0,0,0,0,0,1},
+        {1,0,0,0,0,0,0,0,0,0,0,1},
+        {1,0,0,0,0,0,0,0,0,0,0,1},
+        {1,0,0,0,0,0,0,0,0,0,0,1},
+        {1,0,0,0,0,0,0,0,0,0,0,1},
+        {1,0,0,0,0,0,0,0,0,0,0,1},
+        {1,0,0,0,0,0,0,0,0,0,0,1},
+        {1,0,0,0,0,0,0,0,0,0,0,1},
+        {1,0,0,0,0,0,0,0,0,0,0,1},
+        {1,0,0,0,0,0,0,0,0,0,0,1},
+        {1,0,0,0,0,0,0,0,0,0,0,1},
+        {1,0,0,0,0,0,0,0,0,0,0,1},
+        {1,0,0,0,0,0,0,0,0,0,0,1},
+        {1,0,0,0,0,0,0,0,0,0,0,1},
+        {1,0,0,0,0,0,0,0,0,0,0,1},
+        {1,0,0,0,0,0,0,0,0,0,0,1},
+        {1,0,0,0,0,0,0,0,0,0,0,1},
+        {1,0,0,0,0,0,0,0,0,0,1,1},
+        {1,1,1,1,1,1,1,1,1,1,1,1},
+    };
+
+    memcpy(board, b, sizeof(b));
 }
 
 void renderBoard (unsigned int program)
 {
-    for (unsigned int x = 0; x < BOARD_COLS; x++) {
-        for (unsigned int y = 0; y < BOARD_ROWS; y++) {
-            unsigned int piece = board[x][y];
+    for (int row = 0; row < BOARD_ROWS; row++) {
+        for (int col = 0; col < BOARD_COLS; col++) {
+            int piece = board[row][col];
             if (piece) {
                 float *color = colorsDef[piece];
-                drawCube(program, (float) x, (float) y, color);
+                //drawCube(program, (float) y, (float) x * -1, color);
+                drawCubeInBoard(program, row, col, color);
             }
         }
     }
@@ -247,7 +327,15 @@ void renderPiece (unsigned int program)
         for (float y = 0.0f; y < 5.0f; y++) {
             if (GetBlockType(currentPiece.type, currentPiece.rotation, x, y)) {
                 float *color = colorsDef[currentPiece.color];
-                drawCube(program, x + currentPiece.position[0], y + currentPiece.position[1], color);
+                if (GetBlockType(currentPiece.type, currentPiece.rotation, x, y) == 2) {
+                    vec3 highlight = {1.0f, 1.0f, 0.0f};
+                    color = highlight;
+                }
+                drawCube(program, x + currentPiece.position.x, y + currentPiece.position.y, color);
+            }
+            else {
+                vec3 color = {1.0f, 1.0f, 1.0f};
+                drawCube(program, x + currentPiece.position.x, y + currentPiece.position.y, color);
             }
         }
     }
@@ -256,10 +344,12 @@ void renderPiece (unsigned int program)
 void spawnPiece ()
 {
     currentPiece.color = COLOR_RED;
-    currentPiece.rotation = 1;
-    currentPiece.type = 2;
-    currentPiece.position[0] = GetXInitialPosition(currentPiece.type, currentPiece.rotation);
-    currentPiece.position[1] = GetYInitialPosition(currentPiece.type, currentPiece.rotation);
+    currentPiece.rotation = 0;
+    currentPiece.type = 0;
+    currentPiece.position.x = GetXInitialPosition(currentPiece.type, currentPiece.rotation);
+    currentPiece.position.y = GetYInitialPosition(currentPiece.type, currentPiece.rotation);
+    currentPiece.position.x = 0;
+    currentPiece.position.y = 0;
 }
 
 int main (int argc, char *argv[])
@@ -328,11 +418,22 @@ int main (int argc, char *argv[])
         glUseProgram(lightProgram);
         glBindVertexArray(lightCubeVAO);
 
+        // Piece fall down
         elapsedTime += deltaTime;
-        if (elapsedTime > 0.5f) {
+        if (elapsedTime > 1.5f) { // 500 ms
             elapsedTime = 0.0f;
-            currentPiece.position[1] -= 1.0f;
+
+            if (pieceCanMove(currentPiece.rotation, currentPiece.position.x, currentPiece.position.y + 1)) {
+                //currentPiece.position.y += 1;
+                printf("x: %d y: %d\n", currentPiece.position.x, currentPiece.position.y);
+            }
+            else {
+                // Collision with ground detected
+                // add piece to board and spawn a new one
+            }
         }
+
+        paintCollision();
 
         renderBoard(lightProgram);
         renderPiece(lightProgram);
@@ -341,9 +442,8 @@ int main (int argc, char *argv[])
         glfwPollEvents();
     }
 
-    //glDeleteVertexArrays(1, &cubeVAO);
-    //glDeleteVertexArrays(1, &lightVAO);
-    //glDeleteBuffers(1, &VBO);
+    glDeleteVertexArrays(1, &lightCubeVAO);
+    glDeleteBuffers(1, &VBO);
     glDeleteProgram(lightProgram);
 
     glfwTerminate();
