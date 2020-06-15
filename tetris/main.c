@@ -163,10 +163,6 @@ void processInput (GLFWwindow *window)
         if (moveLeft) {
             if (pieceCanMove(currentPiece.rotation, currentPiece.position.row, currentPiece.position.col - 1)) {
                 currentPiece.position.col -= 1;
-                printf("can move\n");
-            }
-            else {
-                printf("cant move\n");
             }
             moveLeft = false;
             printf("row: %d col: %d\n", currentPiece.position.row, currentPiece.position.col);
@@ -299,6 +295,7 @@ void drawCubeInBoard (unsigned int program, int row, int col, float *color)
 
 void initBoard ()
 {
+    /*
     memset(board, COLOR_BLACK, sizeof(board));
 
     // lateral columns
@@ -312,6 +309,7 @@ void initBoard ()
         board[0][y] = COLOR_GREY;
         board[BOARD_COLS - 1][y] = COLOR_GREY;
     }
+    */
 
     memset(board, COLOR_BLACK, sizeof(board));
 
@@ -362,15 +360,26 @@ void renderPiece (unsigned int program)
         for (int col = 0; col < 5; col++) {
             if (GetBlockType(currentPiece.type, currentPiece.rotation, row, col)) {
                 float *color = colorsDef[currentPiece.color];
-                if (GetBlockType(currentPiece.type, currentPiece.rotation, row, col) == 2) {
-                    vec3 highlight = {1.0f, 1.0f, 0.0f};
-                    color = highlight;
-                }
+                //if (GetBlockType(currentPiece.type, currentPiece.rotation, row, col) == 2) {
+                //    vec3 highlight = {1.0f, 1.0f, 0.0f};
+                //    color = highlight;
+                //}
                 drawCubeInBoard(program, row + currentPiece.position.row, col + currentPiece.position.col, color);
             }
-            else {
-                vec3 color = {1.0f, 1.0f, 1.0f};
-                drawCubeInBoard(program, row + currentPiece.position.row, col + currentPiece.position.col, color);
+            //else {
+            //    vec3 color = {1.0f, 1.0f, 1.0f};
+            //    drawCubeInBoard(program, row + currentPiece.position.row, col + currentPiece.position.col, color);
+            //}
+        }
+    }
+}
+
+void addCurrentPieceToBoard ()
+{
+    for (int row = 0; row < 5; row++) {
+        for (int col = 0; col < 5; col++) {
+            if (GetBlockType(currentPiece.type, currentPiece.rotation, row, col)) {
+                board[row + currentPiece.position.row][col + currentPiece.position.col] = currentPiece.color;
             }
         }
     }
@@ -458,14 +467,17 @@ int main (int argc, char *argv[])
         if (elapsedTime > 1.5f) { // 500 ms
             elapsedTime = 0.0f;
 
-            //if (pieceCanMove(currentPiece.rotation, currentPiece.position.row + 1, currentPiece.position.col)) {
-                //currentPiece.position.row += 1;
+            if (pieceCanMove(currentPiece.rotation, currentPiece.position.row + 1, currentPiece.position.col)) {
+                currentPiece.position.row += 1;
                 //printf("row: %d col: %d\n", currentPiece.position.row, currentPiece.position.col);
-            //}
-            //else {
+            }
+            else {
                 // Collision with ground detected
-                // add piece to board and spawn a new one
-            //}
+                // add piece to board
+                addCurrentPieceToBoard();
+                // spawn a new one
+                spawnPiece();
+            }
         }
 
         paintCollision();
