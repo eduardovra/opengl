@@ -43,8 +43,8 @@ typedef struct {
     int color;
     int rotation;
     struct {
-        int x;
-        int y;
+        int row;
+        int col;
     } position;
 } tPiece;
 
@@ -125,9 +125,9 @@ bool paintCollision ()
     // calculate new blocks position
     for (unsigned int blockX = 0; blockX < 5; blockX++) {
         for (unsigned int blockY = 0; blockY < 5; blockY++) {
-            if (GetBlockType(currentPiece.type, currentPiece.rotation, currentPiece.position.x, currentPiece.position.y)) {
-                int newX = blockX + currentPiece.position.x;
-                int newY = blockY + currentPiece.position.y;
+            if (GetBlockType(currentPiece.type, currentPiece.rotation, currentPiece.position.row, currentPiece.position.col)) {
+                int newX = blockX + currentPiece.position.row;
+                int newY = blockY + currentPiece.position.col;
                 if (newX >= 0 && newY >= 0 && newX < BOARD_COLS && newY < BOARD_ROWS) {
                     if (board[newX][newY]) {
                         board[newX][newY] = COLOR_GREEN;
@@ -160,10 +160,11 @@ void processInput (GLFWwindow *window)
 
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
         if (moveLeft) {
-            if (pieceCanMove(currentPiece.rotation, currentPiece.position.x - 1, currentPiece.position.y)) {
-                currentPiece.position.x -= 1;
+            if (pieceCanMove(currentPiece.rotation, currentPiece.position.row, currentPiece.position.col - 1)) {
+                currentPiece.position.col -= 1;
             }
             moveLeft = false;
+            printf("row: %d col: %d\n", currentPiece.position.row, currentPiece.position.col);
         }
     }
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_RELEASE) {
@@ -172,10 +173,11 @@ void processInput (GLFWwindow *window)
 
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
         if (moveRight) {
-            if (pieceCanMove(currentPiece.rotation, currentPiece.position.x + 1, currentPiece.position.y)) {
-                currentPiece.position.x += 1;
+            if (pieceCanMove(currentPiece.rotation, currentPiece.position.row, currentPiece.position.col + 1)) {
+                currentPiece.position.col += 1;
             }
             moveRight = false;
+            printf("row: %d col: %d\n", currentPiece.position.row, currentPiece.position.col);
         }
     }
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_RELEASE) {
@@ -193,7 +195,7 @@ void processInput (GLFWwindow *window)
             if (newRotation == 4) {
                 newRotation = 0;
             }
-            if (pieceCanMove(newRotation, currentPiece.position.x, currentPiece.position.y)) {
+            if (pieceCanMove(newRotation, currentPiece.position.row, currentPiece.position.col)) {
                 currentPiece.rotation = newRotation;
             }
             rotate = false;
@@ -314,7 +316,10 @@ void renderBoard (unsigned int program)
             int piece = board[row][col];
             if (piece) {
                 float *color = colorsDef[piece];
-                //drawCube(program, (float) y, (float) x * -1, color);
+                //if (row == 0) {
+                //    vec3 high = {1.0f, 1.0f, 1.0f};
+                //    color = high;
+                //}
                 drawCubeInBoard(program, row, col, color);
             }
         }
@@ -323,19 +328,19 @@ void renderBoard (unsigned int program)
 
 void renderPiece (unsigned int program)
 {
-    for (float x = 0.0f; x < 5.0f; x++) {
-        for (float y = 0.0f; y < 5.0f; y++) {
-            if (GetBlockType(currentPiece.type, currentPiece.rotation, x, y)) {
+    for (int row = 0; row < 5; row++) {
+        for (int col = 0; col < 5; col++) {
+            if (GetBlockType(currentPiece.type, currentPiece.rotation, row, col)) {
                 float *color = colorsDef[currentPiece.color];
-                if (GetBlockType(currentPiece.type, currentPiece.rotation, x, y) == 2) {
+                if (GetBlockType(currentPiece.type, currentPiece.rotation, row, col) == 2) {
                     vec3 highlight = {1.0f, 1.0f, 0.0f};
                     color = highlight;
                 }
-                drawCube(program, x + currentPiece.position.x, y + currentPiece.position.y, color);
+                drawCubeInBoard(program, row + currentPiece.position.row, col + currentPiece.position.col, color);
             }
             else {
                 vec3 color = {1.0f, 1.0f, 1.0f};
-                drawCube(program, x + currentPiece.position.x, y + currentPiece.position.y, color);
+                drawCubeInBoard(program, row + currentPiece.position.row, col + currentPiece.position.col, color);
             }
         }
     }
@@ -346,10 +351,10 @@ void spawnPiece ()
     currentPiece.color = COLOR_RED;
     currentPiece.rotation = 0;
     currentPiece.type = 0;
-    currentPiece.position.x = GetXInitialPosition(currentPiece.type, currentPiece.rotation);
-    currentPiece.position.y = GetYInitialPosition(currentPiece.type, currentPiece.rotation);
-    currentPiece.position.x = 0;
-    currentPiece.position.y = 0;
+    currentPiece.position.row = GetXInitialPosition(currentPiece.type, currentPiece.rotation);
+    currentPiece.position.col = GetYInitialPosition(currentPiece.type, currentPiece.rotation);
+    currentPiece.position.row = 0;
+    currentPiece.position.col = 0;
 }
 
 int main (int argc, char *argv[])
@@ -423,9 +428,9 @@ int main (int argc, char *argv[])
         if (elapsedTime > 1.5f) { // 500 ms
             elapsedTime = 0.0f;
 
-            if (pieceCanMove(currentPiece.rotation, currentPiece.position.x, currentPiece.position.y + 1)) {
-                //currentPiece.position.y += 1;
-                printf("x: %d y: %d\n", currentPiece.position.x, currentPiece.position.y);
+            if (pieceCanMove(currentPiece.rotation, currentPiece.position.row + 1, currentPiece.position.col)) {
+                //currentPiece.position.row += 1;
+                //printf("row: %d col: %d\n", currentPiece.position.row, currentPiece.position.col);
             }
             else {
                 // Collision with ground detected
