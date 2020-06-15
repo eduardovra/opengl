@@ -125,10 +125,10 @@ bool paintCollision ()
     // calculate new blocks position
     for (unsigned int blockX = 0; blockX < 5; blockX++) {
         for (unsigned int blockY = 0; blockY < 5; blockY++) {
-            if (GetBlockType(currentPiece.type, currentPiece.rotation, currentPiece.position.row, currentPiece.position.col)) {
+            if (GetBlockType(currentPiece.type, currentPiece.rotation, blockX, blockY)) {
                 int newX = blockX + currentPiece.position.row;
                 int newY = blockY + currentPiece.position.col;
-                if (newX >= 0 && newY >= 0 && newX < BOARD_COLS && newY < BOARD_ROWS) {
+                if (newX >= 0 && newY >= 0 && newX < BOARD_ROWS && newY < BOARD_COLS) {
                     if (board[newX][newY]) {
                         board[newX][newY] = COLOR_GREEN;
                     }
@@ -184,9 +184,37 @@ void processInput (GLFWwindow *window)
         moveRight = true;
     }
 
+    static bool moveDown = true, moveUp = true;
+
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-        cubeSpeed += 0.01f;
+        if (moveDown) {
+            if (pieceCanMove(currentPiece.rotation, currentPiece.position.row + 1, currentPiece.position.col)) {
+                currentPiece.position.row += 1;
+            }
+            moveDown = false;
+            printf("row: %d col: %d\n", currentPiece.position.row, currentPiece.position.col);
+        }
     }
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_RELEASE) {
+        moveDown = true;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+        if (moveUp) {
+            if (pieceCanMove(currentPiece.rotation, currentPiece.position.row - 1, currentPiece.position.col)) {
+                currentPiece.position.row -= 1;
+            }
+            moveUp = false;
+            printf("row: %d col: %d\n", currentPiece.position.row, currentPiece.position.col);
+        }
+    }
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_RELEASE) {
+        moveUp = true;
+    }
+
+    //if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+    //    cubeSpeed += 0.01f;
+    //}
 
     static bool rotate = true;
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
@@ -199,6 +227,7 @@ void processInput (GLFWwindow *window)
                 currentPiece.rotation = newRotation;
             }
             rotate = false;
+            printf("rotation: %d\n", currentPiece.rotation);
         }
     }
 
@@ -302,7 +331,7 @@ void initBoard ()
         {1,0,0,0,0,0,0,0,0,0,0,1},
         {1,0,0,0,0,0,0,0,0,0,0,1},
         {1,0,0,0,0,0,0,0,0,0,0,1},
-        {1,0,0,0,0,0,0,0,0,0,1,1},
+        {1,0,0,0,0,0,0,0,0,0,0,1},
         {1,1,1,1,1,1,1,1,1,1,1,1},
     };
 
@@ -350,7 +379,7 @@ void spawnPiece ()
 {
     currentPiece.color = COLOR_RED;
     currentPiece.rotation = 0;
-    currentPiece.type = 0;
+    currentPiece.type = 2;
     currentPiece.position.row = GetXInitialPosition(currentPiece.type, currentPiece.rotation);
     currentPiece.position.col = GetYInitialPosition(currentPiece.type, currentPiece.rotation);
     currentPiece.position.row = 0;
