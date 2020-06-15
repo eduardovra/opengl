@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <time.h>
 #include <stdbool.h>
 
 #include <glad/glad.h>
@@ -98,6 +99,11 @@ void mouse_callback (GLFWwindow *window, double xpos, double ypos)
 void scroll_callback (GLFWwindow *window, double xoffset, double yoffset)
 {
     processMouseScroll(&camera, yoffset);
+}
+
+int getRandom (int start, int end)
+{
+    return rand () % (end - start + 1) + start;
 }
 
 bool pieceCanMove (int rotation, int x, int y)
@@ -387,9 +393,9 @@ void addCurrentPieceToBoard ()
 
 void spawnPiece ()
 {
-    currentPiece.color = COLOR_RED;
-    currentPiece.rotation = 0;
-    currentPiece.type = 2;
+    currentPiece.color = getRandom(COLOR_RED, COLOR_BLUE);
+    currentPiece.rotation = getRandom(0, 3);
+    currentPiece.type = getRandom(0, 6);
     currentPiece.position.row = GetXInitialPosition(currentPiece.type, currentPiece.rotation);
     currentPiece.position.col = GetYInitialPosition(currentPiece.type, currentPiece.rotation);
     currentPiece.position.row = 0;
@@ -398,6 +404,9 @@ void spawnPiece ()
 
 int main (int argc, char *argv[])
 {
+    // Init random numbers
+    srand ((unsigned int) time(NULL));
+
     initCamera(&camera);
     GLFWwindow *window = createWindow();
 
@@ -449,7 +458,7 @@ int main (int argc, char *argv[])
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // wireframe mode
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
         // view/projection transformations
         mat4 view, projection;
