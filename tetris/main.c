@@ -114,7 +114,7 @@ bool pieceCanMove (int rotation, int x, int y)
             if (GetBlockType(currentPiece.type, currentPiece.rotation, blockX, blockY)) {
                 int newX = blockX + x;
                 int newY = blockY + y;
-                printf("collision newX: %d newY: %d\n", newX, newY);
+                //printf("collision newX: %d newY: %d\n", newX, newY);
                 if (newX >= 0 && newY >= 0 && newX < BOARD_ROWS && newY < BOARD_COLS) {
                     if (board[newX][newY]) {
                         return false;
@@ -396,10 +396,29 @@ void spawnPiece ()
     currentPiece.color = getRandom(COLOR_RED, COLOR_BLUE);
     currentPiece.rotation = getRandom(0, 3);
     currentPiece.type = getRandom(0, 6);
-    currentPiece.position.row = GetXInitialPosition(currentPiece.type, currentPiece.rotation);
-    currentPiece.position.col = GetYInitialPosition(currentPiece.type, currentPiece.rotation);
-    currentPiece.position.row = 0;
-    currentPiece.position.col = 0;
+    //currentPiece.position.row = GetXInitialPosition(currentPiece.type, currentPiece.rotation);
+    //currentPiece.position.col = GetYInitialPosition(currentPiece.type, currentPiece.rotation);
+    currentPiece.position.row = -1;
+    currentPiece.position.col = 5;
+}
+
+void checkDeleteLines ()
+{
+    for (int row = BOARD_ROWS - 2; row >= 1; row--) {
+        bool delete = true;
+        for (int col = 1; col < BOARD_COLS - 1; col++) {
+            if (!board[row][col]) {
+                delete = false;
+                break;
+            }
+        }
+
+        if (delete) {
+            for (int col = 1; col < BOARD_COLS - 1; col++) {
+                board[row][col] = COLOR_BLACK;
+            }
+        }
+    }
 }
 
 int main (int argc, char *argv[])
@@ -484,6 +503,8 @@ int main (int argc, char *argv[])
                 // Collision with ground detected
                 // add piece to board
                 addCurrentPieceToBoard();
+                // check if theres lines to be deleted
+                checkDeleteLines();
                 // spawn a new one
                 spawnPiece();
             }
