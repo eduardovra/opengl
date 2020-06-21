@@ -108,6 +108,10 @@ int getRandom (int start, int end)
 
 bool pieceCanMove (int rotation, int x, int y)
 {
+    if (x == 0) {
+        return true; // Never collide on first row
+    }
+
     // calculate new blocks position
     for (unsigned int blockX = 0; blockX < 5; blockX++) {
         for (unsigned int blockY = 0; blockY < 5; blockY++) {
@@ -171,7 +175,7 @@ void processInput (GLFWwindow *window)
                 currentPiece.position.col -= 1;
             }
             moveLeft = false;
-            printf("row: %d col: %d\n", currentPiece.position.row, currentPiece.position.col);
+            //printf("row: %d col: %d\n", currentPiece.position.row, currentPiece.position.col);
         }
     }
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_RELEASE) {
@@ -184,7 +188,7 @@ void processInput (GLFWwindow *window)
                 currentPiece.position.col += 1;
             }
             moveRight = false;
-            printf("row: %d col: %d\n", currentPiece.position.row, currentPiece.position.col);
+            //printf("row: %d col: %d\n", currentPiece.position.row, currentPiece.position.col);
         }
     }
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_RELEASE) {
@@ -199,7 +203,7 @@ void processInput (GLFWwindow *window)
                 currentPiece.position.row += 1;
             }
             moveDown = false;
-            printf("row: %d col: %d\n", currentPiece.position.row, currentPiece.position.col);
+            //printf("row: %d col: %d\n", currentPiece.position.row, currentPiece.position.col);
         }
     }
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_RELEASE) {
@@ -234,7 +238,7 @@ void processInput (GLFWwindow *window)
                 currentPiece.rotation = newRotation;
             }
             rotate = false;
-            printf("rotation: %d\n", currentPiece.rotation);
+            //printf("rotation: %d\n", currentPiece.rotation);
         }
     }
 
@@ -402,6 +406,15 @@ void spawnPiece ()
     currentPiece.position.col = 5;
 }
 
+void movePiecesDown (int start_row)
+{
+    for (int row = start_row; row >= 2; row--) {
+        for (int col = 1; col < BOARD_COLS - 1; col++) {
+            board[row][col] = board[row - 1][col];
+        }
+    }
+}
+
 void checkDeleteLines ()
 {
     for (int row = BOARD_ROWS - 2; row >= 1; row--) {
@@ -417,6 +430,10 @@ void checkDeleteLines ()
             for (int col = 1; col < BOARD_COLS - 1; col++) {
                 board[row][col] = COLOR_BLACK;
             }
+
+            movePiecesDown(row);
+            checkDeleteLines();
+            break;
         }
     }
 }
@@ -510,7 +527,7 @@ int main (int argc, char *argv[])
             }
         }
 
-        paintCollision();
+        //paintCollision();
 
         renderBoard(lightProgram);
         renderPiece(lightProgram);
